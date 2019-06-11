@@ -44,16 +44,21 @@ def Modify_Groups():
     place_holder = tk.Label(modify_groups_screen, text="Please Choose a group first.", bg="white", borderwidth=5, relief="solid")
     place_holder.place(x=490,y=120,width=400,height=550)
 
-    tk.Label(modify_groups_screen, text="Add New Group", bg="white").place(x=1075, y=180)
-    tk.Entry(modify_groups_screen, textvariable=new_grp, width=30).place(x=1050, y=210)
-    tk.Button(modify_groups_screen, text='Add Group').place(x=1075, y=240)
+    tk.Label(modify_groups_screen, text="Add New Group", bg="white").place(x=1065, y=180)
+    tk.Entry(modify_groups_screen, textvariable=new_grp, width=30).place(x=1000, y=210)
+    tk.Button(modify_groups_screen, text='Add Group', command=Add_Group).place(x=1075, y=240)
 
-    tk.Label(modify_groups_screen, text="Add New Type to Selcted Group", bg="white").place(x=1075, y=280)
-    tk.Entry(modify_groups_screen, textvariable=new_type, width=30).place(x=1050, y=310)
+    tk.Label(modify_groups_screen, text="Add New Type to Selcted Group", bg="white").place(x=1025, y=300)
+    tk.Entry(modify_groups_screen, textvariable=new_type, width=30).place(x=1000, y=330)
     tk.Button(modify_groups_screen, text='Add Type').place(x=1075, y=360)
+
+    tk.Button(modify_groups_screen, text='Delete Selected Group').place(x=1035, y=420)
+
+    tk.Button(modify_groups_screen, text='Delete Type from Selcted Group').place(x=1000, y=480)
 
     visible = modify_groups_screen
     modify_groups_screen.place(x=0, y=0, width=1366, height=768)
+
 
 def get_setting(config, section):
     #Returns a value
@@ -84,11 +89,20 @@ def Get_Types(event):
 
 
 def Get_Groups():
+    global config
     config = configparser.ConfigParser()
     path = "Config.ini"
     config.read(path)
     groups = config.sections()
     return groups
+
+
+def Add_Group():
+    grp = "\n[" + new_grp.get() + "]\n"
+    with open("Config.ini", "a") as confg:
+        confg.write(grp)
+        confg.write("type = \n")
+    Modify_Groups()
 
 
 def Add():
@@ -233,7 +247,8 @@ master = tk.Tk()
 master.title("Inventory Management")
 master.geometry("1366x768")
 
-Add_Inventory()
+#Add_Inventory()
+Modify_Groups()
 
 menubar = tk.Menu(master)
 filemenu = tk.Menu(menubar, tearoff=0)
