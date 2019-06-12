@@ -24,6 +24,7 @@ def Modify_Groups():
     global visible
     global new_grp
     global new_type
+    global groupsbox2
 
     new_grp = tk.StringVar()
     new_type = tk.StringVar()
@@ -33,12 +34,12 @@ def Modify_Groups():
     tk.Label(modify_groups_screen, text="Modify Groups", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
 
     tk.Label(modify_groups_screen, text="Groups", bg="white", font=("Calibri", 25)).place(x=160,y=75,width=120,height=50)
-    groupsbox = tk.Listbox(modify_groups_screen)
+    groupsbox2 = tk.Listbox(modify_groups_screen)
     groups = Get_Groups()
     for group in groups:
-        groupsbox.insert(tk.END, group)
-    groupsbox.bind("<Double-Button-1>", Get_Types)
-    groupsbox.place(x=40,y=120,width=400,height=550)
+        groupsbox2.insert(tk.END, group)
+    groupsbox2.bind("<Double-Button-1>", Get_Types)
+    groupsbox2.place(x=40,y=120,width=400,height=550)
 
     tk.Label(modify_groups_screen, text="Types", bg="white", font=("Calibri", 25)).place(x=620,y=75,width=100,height=50)
     place_holder = tk.Label(modify_groups_screen, text="Please Choose a group first.", bg="white", borderwidth=5, relief="solid")
@@ -50,7 +51,7 @@ def Modify_Groups():
 
     tk.Label(modify_groups_screen, text="Add New Type to Selcted Group", bg="white").place(x=1025, y=300)
     tk.Entry(modify_groups_screen, textvariable=new_type, width=30).place(x=1000, y=330)
-    tk.Button(modify_groups_screen, text='Add Type').place(x=1075, y=360)
+    tk.Button(modify_groups_screen, text='Add Type', command=Add_Type).place(x=1075, y=360)
 
     tk.Button(modify_groups_screen, text='Delete Selected Group').place(x=1035, y=420)
 
@@ -60,9 +61,16 @@ def Modify_Groups():
     modify_groups_screen.place(x=0, y=0, width=1366, height=768)
 
 
+def update_setting(path, config, section, setting, value):
+    #Update a setting
+    config.set(section, setting, value)
+    with open(path, "w") as config_file:
+        config.write(config_file)
+
+
 def get_setting(config, section):
     #Returns a value
-    value = config.get(section, "types")
+    value = config.get(section, "type")
     return value
 
 
@@ -90,6 +98,7 @@ def Get_Types(event):
 
 def Get_Groups():
     global config
+    global path
     config = configparser.ConfigParser()
     path = "Config.ini"
     config.read(path)
@@ -98,11 +107,39 @@ def Get_Groups():
 
 
 def Add_Group():
-    grp = "\n[" + new_grp.get() + "]\n"
-    with open("Config.ini", "a") as confg:
-        confg.write(grp)
-        confg.write("type = \n")
-    Modify_Groups()
+    grp = (new_grp.get()).upper()
+    groups = Get_Groups()
+    if grp not in groups:
+        grp = "\n[" + grp + "]\n"
+        with open("Config.ini", "a") as confg:
+            confg.write(grp)
+            confg.write("type = \n")
+        toModify_Groups()
+        popupmsg("New Group Succesfully Created.")
+    else:
+        popupmsg("Group already exists.")
+
+
+def Add_Type():
+    type = (new_type.get()).upper()
+    try:
+        selection = (groupsbox2.curselection())[0]
+        groups = Get_Groups()
+        group = groups[selection]
+        value = get_setting(config, group)
+        if type not in value:
+            if len(value) > 0:
+                value += ", " + type
+            else:
+                value = type
+            update_setting(path, config, group, "type", value)
+            toModify_Groups()
+            msg = "Type " + type + " added to " + group
+            popupmsg(msg)
+        else:
+            popupmsg("Type already present.")
+    except:
+        popupmsg("Please select a group first.")
 
 
 def Add():
