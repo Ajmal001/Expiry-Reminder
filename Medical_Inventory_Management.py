@@ -86,10 +86,30 @@ def sel(event):
     type = widget.get(selection[0]).strip()
 
 
-def OnMouseWheel(event):
-        searchbox1.yview("scroll",event.delta,"units")
-        searchbox2.yview("scroll",event.delta,"units")
-        searchbox3.yview("scroll",event.delta,"units")
+def reading_type(event):
+    widget = event.widget
+    selection = widget.curselection()
+    name = widget.get(selection[0]).strip()
+    file = open("inventory.db", "r")
+    for line in file:
+        if line.split()[0].replace("_", " ") == name:
+            display_reading_type(line)
+
+
+def display_reading_type(line):
+    global text
+    global qty
+
+    text = line.split()
+    qty = tk.IntVar(modify_inventory_screen, text[5])
+    tk.Label(modify_inventory_screen, text="Name:", bg="white").place(x = 500, y = 550)
+    tk.Label(modify_inventory_screen, text=text[0].replace("_", " "), bg="white").place(x = 600, y = 550)
+    tk.Label(modify_inventory_screen, text="Date of Expiry:", bg="white").place(x = 500, y = 580)
+    tk.Label(modify_inventory_screen, text=text[3], bg="white").place(x = 600, y = 580)
+    tk.Label(modify_inventory_screen, text="Quantity Left:", bg="white").place(x = 500, y = 610)
+    tk.Entry(modify_inventory_screen, textvariable=qty).place(x = 600, y = 610)
+    tk.Button(modify_inventory_screen, text="Update Quantity", command=Update_Qty).place(x=540, y=640)
+    tk.Button(modify_inventory_screen, text="Delete from Inventory", command=Delete).place(x=685, y=640)
 
 
 def Get_Types(group):
@@ -183,7 +203,6 @@ def Delete_Group():
         selection = (groupsbox2.curselection())[0]
         groups = Get_Groups()
         group = groups[selection]
-        print(group)
         config.remove_section(group)
         with open("Config.ini", "w") as config_file:
             config.write(config_file)
@@ -213,23 +232,55 @@ def Add():
     qt = str(qty.get())
     typ = str(type)
     if nam != "" and qt != "":
-        with open('inventory.db', 'a') as db:
-            datetoday = datetime.now()
-            datetoday = str(datetoday.strftime("%x"))
-            statement = nam + " " + typ + " " + datetoday + " " + dat + " " + qt + " " + qt +"\n"
-            db.write(statement)
-            log_statement = "Inserted: " + nam + " " + typ + " " + dat + " " + qt + " " + time.ctime() + "\n"
-            log.write(log_statement)
-            popupmsg("Written to file")
+        db = open('inventory.db', 'a')
+        datetoday = datetime.now()
+        datetoday = str(datetoday.strftime("%x"))
+        statement = nam + " " + typ + " " + datetoday + " " + dat + " " + qt + " " + qt +"\n"
+        db.write(statement)
+        log_statement = "Inserted: " + nam + " " + typ + " " + dat + " " + qt + " " + time.ctime() + "\n"
+        log.write(log_statement)
+        popupmsg("Written to file")
     else:
         popupmsg("Fill in all the details")
     log.close()
+    db.close()
+
+
+def Delete():
+    file = open("inventory.db", "r")
+    temp = open("temp.txt", "w")
+    for line in file:
+        lines = line.split()
+        if lines != text:
+            temp.write(line)
+    file.close()
+    temp.close()
+    os.remove("inventory.db")
+    os.rename("temp.txt", "inventory.db")
+    toModify_Inventory()
+    popupmsg("Item Deleted")
+
+
+def Update_Qty():
+    file = open("inventory.db", "r")
+    temp = open("temp.txt", "w")
+    for line in file:
+        lines = line.split()
+        if lines != text:
+            temp.write(line)
+        else:
+            line1 = lines[0] + " " + lines[1] + " " + lines[2] + " " + lines[3] + " " + lines[4] + " " + str(qty.get()) + "\n"
+            temp.write(line1)
+    file.close()
+    temp.close()
+    os.remove("inventory.db")
+    os.rename("temp.txt", "inventory.db")
+    toModify_Inventory()
+    popupmsg("Quantity Updated.")
 
 
 def Search_Type():
     global searchbox1
-    global searchbox2
-    global searchbox3
 
     selection = (typesbox.curselection())[0]
     groups = Get_Groups()
@@ -238,30 +289,23 @@ def Search_Type():
     type = types[selection]
     file = open("inventory.db", "r")
     searchbox1 = tk.Listbox(modify_inventory_screen)
-    searchbox2 = tk.Listbox(modify_inventory_screen)
-    searchbox3 = tk.Listbox(modify_inventory_screen)
     for line in file:
         text = line.split()
         if text[1] == type:
-            searchbox1.insert(tk.END, text[0])
-            searchbox2.insert(tk.END, text[2])
-            searchbox3.insert(tk.END, text[5])
-    searchbox1.bind("<MouseWheel>", OnMouseWheel)
-    searchbox2.bind("<MouseWheel>", OnMouseWheel)
-    searchbox3.bind("<MouseWheel>", OnMouseWheel)
-    searchbox1.bind("<Button-4>", OnMouseWheel)
-    searchbox2.bind("<Button-4>", OnMouseWheel)
-    searchbox3.bind("<Button-4>", OnMouseWheel)
-    searchbox1.bind("<Button-5>", OnMouseWheel)
-    searchbox2.bind("<Button-5>", OnMouseWheel)
-    searchbox3.bind("<Button-5>", OnMouseWheel)
-    searchbox1.place(x=850, y=120, width=100,height=550)
-    searchbox2.place(x=975, y=120, width=100,height=550)
-    searchbox3.place(x=1100, y=120, width=100,height=550)
+            searchbox1.insert(tk.END, text[0].replace("_", " "))
+    tk.Label(modify_inventory_screen, text="Names", bg="white", font=("Calibri", 25)).place(x=850,y=80,width=400,height=40)
+    searchbox1.bind("<Double-Button-1>", reading_type)
+    searchbox1.place(x=850, y=120, width=400,height=400)
 
 
 def Search_Name():
-    pass
+    file = open("inventory.db", "r")
+    searchbox1 = tk.Listbox(modify_inventory_screen)
+    for line in file:
+        text = line.split()
+        name = str(search_name.get())
+        if text[0] == name.replace(" ", "_"):
+            display_reading_type(line)
 
 
 def popupmsg(msg):
@@ -283,8 +327,11 @@ def Modify_Inventory():
     search_name = tk.StringVar()
 
     modify_inventory_screen = tk.Frame(master, bg = "white")
+    tk.Label(modify_inventory_screen, text="Modify Inventory", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
+
     L1 = tk.Label(modify_inventory_screen, text="Groups", bg="white", font=("Calibri", 25))
     L1.place(x=160,y=75,width=120,height=50)
+
     groupsbox = tk.Listbox(modify_inventory_screen)
     groups = Get_Groups()
     for group in groups:
@@ -353,8 +400,7 @@ master = tk.Tk()
 master.title("Inventory Management")
 master.geometry("1366x768")
 
-#Add_Inventory()
-Modify_Inventory()
+Add_Inventory()
 
 menubar = tk.Menu(master)
 filemenu = tk.Menu(menubar, tearoff=0)
