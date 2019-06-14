@@ -18,6 +18,11 @@ def toModify_Groups():
     Modify_Groups()
 
 
+def toModify_Inventory():
+    visible.place_forget()
+    Modify_Inventory()
+
+
 def Modify_Groups():
     global modify_groups_screen
     global place_holder
@@ -38,7 +43,7 @@ def Modify_Groups():
     groups = Get_Groups()
     for group in groups:
         groupsbox2.insert(tk.END, group)
-    groupsbox2.bind("<Double-Button-1>", Get_Types)
+    groupsbox2.bind("<Double-Button-1>", Draw_Types_Box)
     groupsbox2.place(x=40,y=120,width=400,height=550)
 
     tk.Label(modify_groups_screen, text="Types", bg="white", font=("Calibri", 25)).place(x=620,y=75,width=100,height=50)
@@ -53,9 +58,9 @@ def Modify_Groups():
     tk.Entry(modify_groups_screen, textvariable=new_type, width=30).place(x=1000, y=330)
     tk.Button(modify_groups_screen, text='Add Type', command=Add_Type).place(x=1075, y=360)
 
-    tk.Button(modify_groups_screen, text='Delete Selected Group').place(x=1035, y=420)
+    tk.Button(modify_groups_screen, text='Delete Selected Group', command=Delete_Group).place(x=1035, y=420)
 
-    tk.Button(modify_groups_screen, text='Delete Type from Selcted Group').place(x=1000, y=480)
+    tk.Button(modify_groups_screen, text='Delete Type from Selcted Group', command=Delete_Type).place(x=1000, y=480)
 
     visible = modify_groups_screen
     modify_groups_screen.place(x=0, y=0, width=1366, height=768)
@@ -81,19 +86,50 @@ def sel(event):
     type = widget.get(selection[0]).strip()
 
 
-def Get_Types(event):
-    widget = event.widget
-    selection = widget.curselection()
-    group = widget.get(selection[0]).strip()
+def OnMouseWheel(event):
+        searchbox1.yview("scroll",event.delta,"units")
+        searchbox2.yview("scroll",event.delta,"units")
+        searchbox3.yview("scroll",event.delta,"units")
+
+
+def Get_Types(group):
     config = configparser.ConfigParser()
     path = "Config.ini"
     config.read(path)
     types = get_setting(config, group).split(", ")
+    return types
+
+
+def Draw_Types_Box(event):
+    global typesbox
+    global current_selection
+    widget = event.widget
+    current_selection = widget.curselection()
+    group = widget.get(current_selection[0]).strip()
+    types = Get_Types(group)
     typesbox = tk.Listbox(visible)
     for type in types:
         typesbox.insert(tk.END, type)
     typesbox.bind("<Double-Button-1>", sel)
     typesbox.place(x=490,y=120,width=400,height=550)
+
+
+def Draw_Types_Box_Same_Place(event):
+    global typesbox
+    global current_selection
+
+    L1.place_forget()
+    tk.Label(modify_inventory_screen, text="Types", bg="white", font=("Calibri", 25)).place(x=160,y=75,width=120,height=50)
+    tk.Button(modify_inventory_screen, text="Back", command=Modify_Inventory).place(x=40,y=100, width=50,height=20)
+    widget = event.widget
+    current_selection = widget.curselection()
+    group = widget.get(current_selection[0]).strip()
+    types = Get_Types(group)
+    typesbox = tk.Listbox(visible)
+    for type in types:
+        typesbox.insert(tk.END, type)
+    typesbox.bind("<Double-Button-1>", sel)
+    typesbox.place(x=40,y=120,width=400,height=550)
 
 
 def Get_Groups():
@@ -142,12 +178,40 @@ def Add_Type():
         popupmsg("Please select a group first.")
 
 
+def Delete_Group():
+    try:
+        selection = (groupsbox2.curselection())[0]
+        groups = Get_Groups()
+        group = groups[selection]
+        print(group)
+        config.remove_section(group)
+        with open("Config.ini", "w") as config_file:
+            config.write(config_file)
+        toModify_Groups()
+        msg = "Succesfully deleted " + group + " group."
+        popupmsg(msg)
+    except:
+        popupmsg("Please select a group first.")
+
+
+def Delete_Type():
+    selection = (typesbox.curselection())[0]
+    groups = Get_Groups()
+    group = groups[current_selection[0]]
+    types = Get_Types(group)
+    type = types[selection]
+    types.remove(type)
+    value = ", ".join(types)
+    update_setting(path, config, group, "type", value)
+    toModify_Groups()
+
+
 def Add():
     log = open("inventory.lg", "a")
     nam = (str(name.get())).replace(" ","_")
     dat = str(cal.get())
     qt = str(qty.get())
-    typ = type
+    typ = str(type)
     if nam != "" and qt != "":
         with open('inventory.db', 'a') as db:
             datetoday = datetime.now()
@@ -162,65 +226,42 @@ def Add():
     log.close()
 
 
-def Delete():
-    nam = str(del_name.get())
-    if nam != "":
-        with open("inventory.db", 'r') as db:
-            for line in db:
-                li = []
-                for word in line.split():
-                    li.append(word)
-                nam2 = li[0]
-                nam2 = nam2.replace("_"," ")
-                if nam2 != nam:
-                    file = open("temp.db", 'w')
-                    file.write(line)
-                    file.close()
-                elif nam2 == nam:
-                    log = open("inventory.lg", "a")
-                    log_statement = "Deleted: " + nam + " " + " " + time.ctime() + "\n"
-                    log.write(log_statement)
-            popupmsg("Deleted")
-        os.remove("inventory.db")
-        os.rename("temp.db", "inventory.db")
-    else:
-        popupmsg("Fill in all the details")
+def Search_Type():
+    global searchbox1
+    global searchbox2
+    global searchbox3
+
+    selection = (typesbox.curselection())[0]
+    groups = Get_Groups()
+    group = groups[current_selection[0]]
+    types = Get_Types(group)
+    type = types[selection]
+    file = open("inventory.db", "r")
+    searchbox1 = tk.Listbox(modify_inventory_screen)
+    searchbox2 = tk.Listbox(modify_inventory_screen)
+    searchbox3 = tk.Listbox(modify_inventory_screen)
+    for line in file:
+        text = line.split()
+        if text[1] == type:
+            searchbox1.insert(tk.END, text[0])
+            searchbox2.insert(tk.END, text[2])
+            searchbox3.insert(tk.END, text[5])
+    searchbox1.bind("<MouseWheel>", OnMouseWheel)
+    searchbox2.bind("<MouseWheel>", OnMouseWheel)
+    searchbox3.bind("<MouseWheel>", OnMouseWheel)
+    searchbox1.bind("<Button-4>", OnMouseWheel)
+    searchbox2.bind("<Button-4>", OnMouseWheel)
+    searchbox3.bind("<Button-4>", OnMouseWheel)
+    searchbox1.bind("<Button-5>", OnMouseWheel)
+    searchbox2.bind("<Button-5>", OnMouseWheel)
+    searchbox3.bind("<Button-5>", OnMouseWheel)
+    searchbox1.place(x=850, y=120, width=100,height=550)
+    searchbox2.place(x=975, y=120, width=100,height=550)
+    searchbox3.place(x=1100, y=120, width=100,height=550)
 
 
-def Del_sel():
-    nam = str(del_name.get())
-    qt = str(del_qty.get())
-    if nam!="" and qt!="":
-        with open("inventory.db", 'r') as db:
-            for line in db:
-                li = []
-                for word in line.split():
-                    li.append(word)
-                nam2 = li[0]
-                nam2 = nam2.replace("_"," ")
-                if nam2 != nam:
-                    file = open("temp.db", 'w')
-                    file.write(line)
-                    file.close()
-                else:
-                    file = open("temp.db", 'w')
-                    org = int(li[5])
-                    qt = int(qt)
-                    new = str(org-qt)
-                    org = str(org)
-                    type = li[1]
-                    date = li[2]
-                    statement = nam + " " + type + " " + date + " " + org + " " + new + "\n"
-                    file.write(statement)
-                    file.close()
-                    log = open("inventory.lg", "a")
-                    log_statement = "Deleted: " + nam + " " + type + " " + str(qt) + " " + time.ctime() + "\n"
-                    log.write(log_statement)
-                    popupmsg("Removed")
-        os.remove("inventory.db")
-        os.rename("temp.db", "inventory.db")
-    else:
-        popupmsg("  Fill in all the details")
+def Search_Name():
+    pass
 
 
 def popupmsg(msg):
@@ -231,6 +272,34 @@ def popupmsg(msg):
     B1 = tk.Button(popup, text="Okay", command = popup.destroy)
     B1.pack()
     popup.mainloop()
+
+
+def Modify_Inventory():
+    global modify_inventory_screen
+    global visible
+    global L1
+    global search_name
+
+    search_name = tk.StringVar()
+
+    modify_inventory_screen = tk.Frame(master, bg = "white")
+    L1 = tk.Label(modify_inventory_screen, text="Groups", bg="white", font=("Calibri", 25))
+    L1.place(x=160,y=75,width=120,height=50)
+    groupsbox = tk.Listbox(modify_inventory_screen)
+    groups = Get_Groups()
+    for group in groups:
+        groupsbox.insert(tk.END, group)
+    groupsbox.bind("<Double-Button-1>", Draw_Types_Box_Same_Place)
+    groupsbox.place(x=40,y=120,width=400,height=550)
+
+    tk.Button(modify_inventory_screen, text='Search by Type', command=Search_Type).place(x=500, y=140)
+
+    tk.Label(modify_inventory_screen, text="Name", bg="white").place(x=500, y=300)
+    tk.Entry(modify_inventory_screen, textvariable=search_name, width=30).place(x=500, y=330)
+    tk.Button(modify_inventory_screen, text='Search by Name', command=Search_Name).place(x=500, y=360)
+
+    visible = modify_inventory_screen
+    modify_inventory_screen.place(x=0, y=0, width=1366, height=768)
 
 
 def Add_Inventory():
@@ -257,7 +326,7 @@ def Add_Inventory():
     groups = Get_Groups()
     for group in groups:
         groupsbox.insert(tk.END, group)
-    groupsbox.bind("<Double-Button-1>", Get_Types)
+    groupsbox.bind("<Double-Button-1>", Draw_Types_Box)
     groupsbox.place(x=40,y=120,width=400,height=550)
 
     tk.Label(add_inventory_screen, text="Types", bg="white", font=("Calibri", 25)).place(x=620,y=75,width=100,height=50)
@@ -285,11 +354,12 @@ master.title("Inventory Management")
 master.geometry("1366x768")
 
 #Add_Inventory()
-Modify_Groups()
+Modify_Inventory()
 
 menubar = tk.Menu(master)
 filemenu = tk.Menu(menubar, tearoff=0)
 filemenu.add_command(label="Add to Inventory", command=toAdd_Inventory)
+filemenu.add_command(label="Modify Inventory", command=toModify_Inventory)
 filemenu.add_command(label="Modify Groups", command=toModify_Groups)
 filemenu.add_separator()
 filemenu.add_command(label="Exit", command=master.quit)
