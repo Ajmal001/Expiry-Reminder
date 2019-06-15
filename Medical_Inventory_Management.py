@@ -6,6 +6,7 @@ import time
 from datetime import datetime
 from tkinter.font import Font
 import configparser
+import re
 
 
 def toAdd_Inventory():
@@ -18,9 +19,182 @@ def toModify_Groups():
     Modify_Groups()
 
 
-def toModify_Inventory():
+def toCheck_Inventory():
     visible.place_forget()
-    Modify_Inventory()
+    Check_Inventory()
+
+
+def Login():
+    global login_screen
+    global visible
+    global username_verify
+    global password_verify
+    global username_login_Entry
+    global password_login_Entry
+
+    username_verify = tk.StringVar()
+    password_verify = tk.StringVar()
+
+    login_screen = tk.Frame(main_account_screen, bg = "white")
+
+    tk.Label(login_screen, text="Please enter details below to Login", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
+
+    tk.Label(login_screen, text="Username:", bg="white", font=("Calibri", 20)).place(x=450, y=250, width=250, height=50)
+    username_login_Entry = tk.Entry(login_screen, textvariable=username_verify, font=("Calibri", 20))
+    username_login_Entry.place(x=650, y=250, width=250, height=50)
+    tk.Label(login_screen, text="Password:", bg="white", font=("Calibri", 20)).place(x=450, y=350, width=250, height=50)
+    password_login_Entry = tk.Entry(login_screen, textvariable=password_verify, show= '*', font=("Calibri", 20))
+    password_login_Entry.place(x=650, y=350, width=250, height=50)
+    tk.Button(login_screen, text="Login", width=10, height=1, command = login_verify).place(x=650, y=450, width=100, height=40)
+    visible = login_screen
+    login_screen.place(x=0, y=0, width=1366, height=768)
+
+
+def login_verify():
+    username1 = username_verify.get()
+    password1 = password_verify.get()
+    username_login_Entry.delete(0, tk.END)
+    password_login_Entry.delete(0, tk.END)
+
+    if username1 != "" and password1 != "":
+        file = open("users.db", "r")
+        for line in file:
+            if line.split()[0] == username1 and line.split()[1] == password1:
+                Master()
+            else:
+                popupmain("Username or Password Wrong.")
+    else:
+        popupmain("Please Enter Username and Password.")
+
+
+def Admin_Login():
+
+    global visible
+
+    if os.path.exists("admin.ini"):
+        global admin_login_screen
+        global username_verify
+        global password_verify
+        global username_login_Entry
+        global password_login_Entry
+
+        username_verify = tk.StringVar()
+        password_verify = tk.StringVar()
+
+        admin_login_screen = tk.Frame(main_account_screen, bg = "white")
+
+        tk.Label(admin_login_screen, text="Please enter details below to Login as Admin", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
+
+        tk.Label(admin_login_screen, text="Username:", bg="white", font=("Calibri", 20)).place(x=450, y=250, width=250, height=50)
+        username_login_Entry = tk.Entry(admin_login_screen, textvariable=username_verify, font=("Calibri", 20))
+        username_login_Entry.place(x=650, y=250, width=250, height=50)
+        tk.Label(admin_login_screen, text="Password:", bg="white", font=("Calibri", 20)).place(x=450, y=350, width=250, height=50)
+        password_login_Entry = tk.Entry(admin_login_screen, textvariable=password_verify, show= '*', font=("Calibri", 20))
+        password_login_Entry.place(x=650, y=350, width=250, height=50)
+        tk.Button(admin_login_screen, text="Login", width=10, height=1, command = login_admin_verify).place(x=650, y=450, width=100, height=40)
+        visible = admin_login_screen
+        admin_login_screen.place(x=0, y=0, width=1366, height=768)
+    else:
+        global admin_setup_screen
+        global username
+        global password
+        global email
+
+        username = tk.StringVar()
+        password = tk.StringVar()
+        email = tk.StringVar()
+
+        admin_setup_screen = tk.Frame(main_account_screen, bg = "white")
+
+        tk.Label(admin_setup_screen, text="Please enter details below to Setup Admin Account.", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
+
+        tk.Label(admin_setup_screen, text="Username:", bg="white", font=("Calibri", 15)).place(x=450, y=250, width=250, height=40)
+        username_login_Entry = tk.Entry(admin_setup_screen, textvariable=username, font=("Calibri", 15))
+        username_login_Entry.place(x=650, y=250, width=250, height=40)
+        tk.Label(admin_setup_screen, text="Password:", bg="white", font=("Calibri", 15)).place(x=450, y=310, width=250, height=40)
+        password_login_Entry = tk.Entry(admin_setup_screen, textvariable=password, show= '*', font=("Calibri", 15))
+        password_login_Entry.place(x=650, y=310, width=250, height=40)
+        tk.Label(admin_setup_screen, text="Mail-ID for Expiry", bg="white", font=("Calibri", 15)).place(x=450, y=370, width=250, height=40)
+        tk.Label(admin_setup_screen, text="Notification:", bg="white", font=("Calibri", 15)).place(x=450, y=400, width=250, height=40)
+        password_login_Entry = tk.Entry(admin_setup_screen, textvariable=email, font=("Calibri", 15))
+        password_login_Entry.place(x=650, y=400, width=250, height=40)
+        tk.Button(admin_setup_screen, text="Register", width=10, height=1, command = register_admin).place(x=650, y=470, width=100, height=40)
+        visible = admin_setup_screen
+        admin_setup_screen.place(x=0, y=0, width=1366, height=768)
+
+
+def login_admin_verify():
+    username1 = username_verify.get()
+    password1 = password_verify.get()
+    username_login_Entry.delete(0, tk.END)
+    password_login_Entry.delete(0, tk.END)
+
+    if username1 != "" and password1 != "":
+        conf = configparser.ConfigParser()
+        path = "admin.ini"
+        conf.read(path)
+        user = conf.get("DATA", "username")
+        passw = conf.get("DATA", "password")
+        if username1 == user and password1 == passw:
+            print("Welcome to Admin Controls.")
+        else:
+            popupmain("Username or Password Wrong.")
+    else:
+        popupmain("Please Enter Username and Password.")
+
+
+def register_admin():
+    user = username.get()
+    passw = password.get()
+    mail = email.get()
+    pattern = r"([\w\.-]+)@([\w\.-]+)(\.[\w\.]+)"
+    if user != "" and passw != "" and re.search(pattern, mail):
+        print("Yes")
+    else:
+        print("No")
+
+
+def Register():
+    global register_screen
+    register_screen = tk.Frame(main_account_screen, bg = "white")
+
+    global username
+    global password
+    global username_Entry
+    global password_Entry
+    username = tk.StringVar()
+    password = tk.StringVar()
+
+    tk.Label(register_screen, text="Please enter details below to Register", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
+    tk.Label(register_screen, text="Username:", bg="white", font=("Calibri", 20)).place(x=450, y=250, width=250, height=50)
+    username_Entry = tk.Entry(register_screen, textvariable=username, font=("Calibri", 20))
+    username_Entry.place(x=650, y=250, width=250, height=50)
+    tk.Label(register_screen, text="Password:", bg="white", font=("Calibri", 20)).place(x=450, y=350, width=250, height=50)
+    password_Entry = tk.Entry(register_screen, textvariable=password, show='*', font=("Calibri", 20))
+    password_Entry.place(x=650, y=350, width=250, height=50)
+    tk.Button(register_screen, text="Register", width=10, height=1, command = register_user).place(x=650, y=450, width=100, height=40)
+    visible = register_screen
+    register_screen.place(x=0, y=0, width=1366, height=768)
+
+
+def register_user():
+
+    username_info = username.get()
+    password_info = password.get()
+    if username_info != "" and password_info != "":
+        file = open("users.db", "r")
+        for line in file:
+            if line.split()[0] != username_info:
+                file = open("users.db", "a")
+                file.write(username_info + " ")
+                file.write(password_info + "\n")
+                file.close()
+                username_Entry.delete(0, tk.END)
+                password_Entry.delete(0, tk.END)
+            else:
+                popupmain("Username Already Taken.")
+    else:
+        popupmain("Please Enter Username and Password.")
 
 
 def Modify_Groups():
@@ -140,7 +314,7 @@ def Draw_Types_Box_Same_Place(event):
 
     L1.place_forget()
     tk.Label(modify_inventory_screen, text="Types", bg="white", font=("Calibri", 25)).place(x=160,y=75,width=120,height=50)
-    tk.Button(modify_inventory_screen, text="Back", command=Modify_Inventory).place(x=40,y=100, width=50,height=20)
+    tk.Button(modify_inventory_screen, text="Back", command=Check_Inventory).place(x=40,y=100, width=50,height=20)
     widget = event.widget
     current_selection = widget.curselection()
     group = widget.get(current_selection[0]).strip()
@@ -257,7 +431,7 @@ def Delete():
     temp.close()
     os.remove("inventory.db")
     os.rename("temp.txt", "inventory.db")
-    toModify_Inventory()
+    toCheck_Inventory()
     popupmsg("Item Deleted")
 
 
@@ -275,7 +449,7 @@ def Update_Qty():
     temp.close()
     os.remove("inventory.db")
     os.rename("temp.txt", "inventory.db")
-    toModify_Inventory()
+    toCheck_Inventory()
     popupmsg("Quantity Updated.")
 
 
@@ -318,7 +492,17 @@ def popupmsg(msg):
     popup.mainloop()
 
 
-def Modify_Inventory():
+def popupmain(msg):
+    popup = tk.Toplevel(main_account_screen)
+    popup.wm_title("!")
+    label = tk.Label(popup, text=msg)
+    label.pack(side="top", fill="x", pady=10)
+    B1 = tk.Button(popup, text="Okay", command = popup.destroy)
+    B1.pack()
+    popup.mainloop()
+
+
+def Check_Inventory():
     global modify_inventory_screen
     global visible
     global L1
@@ -327,7 +511,7 @@ def Modify_Inventory():
     search_name = tk.StringVar()
 
     modify_inventory_screen = tk.Frame(master, bg = "white")
-    tk.Label(modify_inventory_screen, text="Modify Inventory", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
+    tk.Label(modify_inventory_screen, text="Check Inventory", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
 
     L1 = tk.Label(modify_inventory_screen, text="Groups", bg="white", font=("Calibri", 25))
     L1.place(x=160,y=75,width=120,height=50)
@@ -396,20 +580,44 @@ def Add_Inventory():
     add_inventory_screen.place(x=0, y=0, width=1366, height=768)
 
 
-master = tk.Tk()
-master.title("Inventory Management")
-master.geometry("1366x768")
+def Main_Account():
+    global main_account_screen
+    global visible
 
-Add_Inventory()
+    main_account_screen = tk.Tk()
+    main_account_screen.geometry("1366x768")
+    main_account_screen.configure(bg="white")
 
-menubar = tk.Menu(master)
-filemenu = tk.Menu(menubar, tearoff=0)
-filemenu.add_command(label="Add to Inventory", command=toAdd_Inventory)
-filemenu.add_command(label="Modify Inventory", command=toModify_Inventory)
-filemenu.add_command(label="Modify Groups", command=toModify_Groups)
-filemenu.add_separator()
-filemenu.add_command(label="Exit", command=master.quit)
-menubar.add_cascade(label="File", menu=filemenu)
-master.config(menu=menubar)
+    tk.Label(text="Select Your Choice", bg="blue", width="300", height="2", font=("Calibri", 13)).place(x=120,y=10,width=1126,height=60)
+    tk.Button(text="Login", height="2", width="30", command = Login).place(x=533,y=250,width=300,height=100)
+    tk.Button(text="Admin Login", height="2", width="30", command = Admin_Login).place(x=533,y=400,width=300,height=100)
 
-master.mainloop()
+    visible = main_account_screen
+    main_account_screen.mainloop()
+
+
+def Master():
+    global master
+
+    master = tk.Tk()
+    master.title("Inventory Management")
+    master.geometry("1366x768")
+    master.configure(bg="white")
+
+    tk.Label(master, text="Select Your Choice", bg="blue", width="300", height="2", font=("Calibri", 13)).place(x=120,y=10,width=1126,height=60)
+    tk.Button(master, text="Add to Inventory", height="2", width="30", command = Add_Inventory).place(x=533,y=250,width=300,height=100)
+    tk.Button(master, text="Check Inventory", height="2", width="30", command = Check_Inventory).place(x=533,y=400,width=300,height=100)
+
+    menubar = tk.Menu(master)
+    filemenu = tk.Menu(menubar, tearoff=0)
+    filemenu.add_command(label="Add to Inventory", command=toAdd_Inventory)
+    filemenu.add_command(label="Check Inventory", command=toCheck_Inventory)
+    filemenu.add_command(label="Modify Groups", command=toModify_Groups)
+    filemenu.add_separator()
+    filemenu.add_command(label="Exit", command=master.quit)
+    menubar.add_cascade(label="File", menu=filemenu)
+    master.config(menu=menubar)
+
+    master.mainloop()
+
+Main_Account()
