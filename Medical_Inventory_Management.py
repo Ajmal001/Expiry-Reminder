@@ -7,6 +7,10 @@ from datetime import datetime
 from tkinter.font import Font
 import configparser
 import re
+import os
+import datetime
+import threading
+from cryptography.fernet import Fernet
 
 
 def toAdd_Inventory():
@@ -71,7 +75,7 @@ def Admin_Login():
 
     global visible
 
-    if os.path.exists("admin.ini"):
+    if os.path.exists(".admin.ini"):
         global admin_login_screen
         global username_verify
         global password_verify
@@ -131,11 +135,13 @@ def login_admin_verify():
 
     if username1 != "" and password1 != "":
         conf = configparser.ConfigParser()
-        path = "admin.ini"
+        path = ".admin.ini"
         conf.read(path)
-        user = conf.get("DATA", "username")
-        passw = conf.get("DATA", "password")
-        if username1 == user and password1 == passw:
+        key = bytes(conf.get("DATA", "d1"), encoding='utf-8')
+        cipher = Fernet(key)
+        user = bytes(conf.get("DATA", "d2"), encoding='utf-8')
+        passw = bytes(conf.get("DATA", "d3"), encoding='utf-8')
+        if username1 == cipher.decrypt(user).decode("utf-8") and password1 == cipher.decrypt(passw).decode("utf-8"):
             print("Welcome to Admin Controls.")
         else:
             popupmain("Username or Password Wrong.")
@@ -149,9 +155,69 @@ def register_admin():
     mail = email.get()
     pattern = r"([\w\.-]+)@([\w\.-]+)(\.[\w\.]+)"
     if user != "" and passw != "" and re.search(pattern, mail):
-        print("Yes")
+        with open(".admin.ini", "a") as file:
+            initial = "[DATA]\nD1 = \nD2 = \nD3 = \nD4 = "
+            file.write(initial)
+        key = Fernet.generate_key()
+        cipher = Fernet(key)
+        config = configparser.ConfigParser()
+        path = (".admin.ini")
+        config.read(path)
+        update_setting(path, config, "DATA", "D1", key.decode("utf-8"))
+        update_setting(path, config, "DATA", "D2", cipher.encrypt(bytes(user, encoding='utf-8')).decode("utf-8"))
+        update_setting(path, config, "DATA", "D3", cipher.encrypt(bytes(passw, encoding='utf-8')).decode("utf-8"))
+        update_setting(path, config, "DATA", "D4", mail)
+        popupmain("Admin succesfully registered.")
     else:
-        print("No")
+        popupmain("Please enter all fields.")
+
+
+def convert_to_days(new_date):
+    n = 0
+    day = int(new_date[0:2])
+    month = int(new_date[3:5])
+    year = int(new_date[6:8])
+    if month == 1:
+        n = day
+    elif month == 2:
+        n = 31 + day
+    elif month == 3:
+        n = 59 + day
+    elif month == 4:
+        n = 90 + day
+    elif month == 5:
+        n = 120 + day
+    elif month == 6:
+        n = 151 + day
+    elif month == 7:
+        n = 181 + day
+    elif month == 8:
+        n = 212 + day
+    elif month == 9:
+        n = 242 + day
+    elif month == 10:
+        n = 272 + day
+    elif month == 11:
+        n = 303 + day
+    elif month == 12:
+        n = 334 + day
+    return n, year
+
+
+def SendMail():
+    x = datetime.datetime.now()
+    day1 = x.strftime("%x")
+    day = str(day1)
+    day1 = day[3:6] + day[0:3] + day[6:9]
+    db = open("inventory.db", "r")
+    today, this_year = convert_to_days(day1)
+    for line in db:
+        text = line.split()
+        good, year = convert_to_days(text[3])
+        if year == this_year and good == today:
+            msg = text[0] + " expires on " + text[3] + ". You still have " + text[5] + " left."
+            command = "python3 oauth2.py " + msg
+            os.system(command)
 
 
 def Register():
@@ -620,4 +686,11 @@ def Master():
 
     master.mainloop()
 
-Main_Account()
+t1 = threading.Thread(target = Main_Account(), name = 't1')
+t2 = threading.Thread(target = SendMail(), name = 't1')
+
+t1.start()
+t2.start()
+
+t1.join()
+t2.join()

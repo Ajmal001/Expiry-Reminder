@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "medical-inventory-management",
+  "private_key_id": "56f955e279bf6533a280567bc645702db938cd7c",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCuOJsxRizBichu\nkbJcG2rGfwxMDVH3a+9FTbK8FyW9SpBQ1nkMUgT2LAT8C9shBm3OLOmUTjjVgGMb\ntErn0Z1UcQa5pYNwWBKuos9KyLQzdIRbXZaObxFasKtD6FYh22ZJ5mrq6TB8MPQ/\nlrjAbbZGO5bXfMug8pDNqdLdyh4DFyfzuFOAkj7+OLL7+SI2yUnId3Ot9yRAuVrR\nrZHCZ50vioGF9e4y/JeMl/kdhhNfF2Ws+WLSF6qMobT7SuBzHawgPHyM42iBGZu3\nCuAfdHI0c74BXamGnECZK9Tb2tRrv6DbsNObuBk52Zz+BWbuRctldWpoTTQ8iYdR\nq23C7pCDAgMBAAECgf8PHAhfNS6rX8o94OQQnkKZIpd/BzcObqJZlBpZWj47jKkU\nuVgIlO9LcHPipWyZnIQI6ZwZ6WY1Y8Ljo6TPC71hoKiRoZQ+LorttfFx+KNjlANP\n0HLmdlq2jX8xZjEu0+XT/0I5m1gLWQTXhShD+JlWAsSvOdFcnq6O71tZNvMnvnfK\nmdVOqKGbL4RuTpsQA70PL1GQmAJvouN89tOfeLD6UbFCRsp8yZxWx4ouOeQgunb2\n8QvgJrXLkZ1fZGq6B4QsulwmNGW3S7lWQGJmrpTSg3zHQklFAnxU0AVw+szjmgKI\nISgTAyLLH+PDWUBiTHKKBDQgyz0fnRZ2lUsHy6ECgYEA33HsDV473FoN476yVluL\naPVacG0IwG2viFMg/ltn5refBR5EyZiR/YuWYEXKDRF1g5IIDrVgyxuNm3Vhy0RG\nPVA6nQO3NSH2495w+IZWl7OEVlYU6guJhOV4ZHagA+LPqW4Ca99zbLo/wvBBJevV\nMTDuK1l5wW9nHB+ywxlwZYsCgYEAx5q5y2zLg1F8YQQnlZiJYjPQOp9ZoIcYC5+4\nfJ3y0HVXaqqL0qiaICXDfUAnjur0qJJ07UfsiIe15GX5wGMrp2deVlvjwdgOUEC7\nyAyx0oj9ENpUF2dqzeSklBaVicYw0JaL1b//oKYbYF3pHBqIKai3zUfY+Y6YgeB3\nWIztD+kCgYEA2iISCp7jG2PCyYHCAfJOr8FOcBDRiWHLCe/1drrvPNonYMzC5HeQ\nlg/uVr/q10UjDrXCLfG9s6qLXKeEN/bIB1VKUzxsX29v4danPMeQw3oaCFrzAeUP\ndHC8Tn9MCV8j0Ui3Dm5O9WcBliILx6RqNSKKcEFiToeeBmOflT1Bb68CgYEAvlVX\nR5h1s8HXBbfteyPaFU9tBwl+cKmBj0v9oq8GpCrQccEw1W66kV8RO3Uag5ieNcR6\nRO0pqsMl+iYXcpHeRaI2/chftS8t7u7bYRZh1m2USya1ux99Y9nb6e5jJ95aG/0C\nWI/d1TWvs0O5jnfqUTc2FUSmrMmBuY7unvy67UkCgYEA2SNphDBIjUwCVRjAX9T/\nt+WY1HS4wG2m3qY8/qcLxaPRgBH6+X7jlhBV9oRNg8aNLzoraNJs/9mQjOyhyXTg\ntnD/7YGAxO9Xoyr5tYv3dL44eIOeUBmWm+M9U1qlG509iF6Ul6ZBOZQ0FcuKVO+m\nlYua1Gc4dfz+h0CgXF06+4c=\n-----END PRIVATE KEY-----\n",
+  "client_email": "expiry-informer@medical-inventory-management.iam.gserviceaccount.com",
+  "client_id": "109786657506516305274",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/expiry-informer%40medical-inventory-management.iam.gserviceaccount.com"
+}
