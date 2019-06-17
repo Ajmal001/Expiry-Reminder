@@ -61,9 +61,18 @@ def login_verify():
     password_login_Entry.delete(0, tk.END)
 
     if username1 != "" and password1 != "":
-        file = open("users.db", "r")
+        file = open(".users.db", "r")
+        conf = configparser.ConfigParser()
+        path = ".admin.ini"
+        conf.read(path)
+        key = bytes(conf.get("DATA", "d1"), encoding='utf-8')
+        cipher = Fernet(key)
         for line in file:
-            if line.split()[0] == username1 and line.split()[1] == password1:
+            username = bytes(line.split()[0], encoding='utf-8')
+            username = cipher.decrypt(username)
+            password = bytes(line.split()[1], encoding='utf-8')
+            password = cipher.decrypt(password)
+            if username.decode("utf-8") == username1 and password.decode("utf-8") == password1:
                 Master()
             else:
                 popupmain("Username or Password Wrong.")
@@ -248,17 +257,21 @@ def register_user():
     username_info = username.get()
     password_info = password.get()
     if username_info != "" and password_info != "":
-        file = open("users.db", "r")
-        for line in file:
-            if line.split()[0] != username_info:
-                file = open("users.db", "a")
-                file.write(username_info + " ")
-                file.write(password_info + "\n")
-                file.close()
-                username_Entry.delete(0, tk.END)
-                password_Entry.delete(0, tk.END)
-            else:
-                popupmain("Username Already Taken.")
+        file = open(".users.db", "r")
+        conf = configparser.ConfigParser()
+        path = ".admin.ini"
+        conf.read(path)
+        key = bytes(conf.get("DATA", "d1"), encoding='utf-8')
+        cipher = Fernet(key)
+        if cipher.encrypt(bytes(username_info, encoding='utf-8')).decode("utf-8") not in file:
+            file = open(".users.db", "a")
+            file.write(cipher.encrypt(bytes(username_info, encoding='utf-8')).decode("utf-8") + " ")
+            file.write(cipher.encrypt(bytes(password_info, encoding='utf-8')).decode("utf-8") + "\n")
+            file.close()
+            username_Entry.delete(0, tk.END)
+            password_Entry.delete(0, tk.END)
+        else:
+            popupmain("Username Already Taken.")
     else:
         popupmain("Please Enter Username and Password.")
 
@@ -656,7 +669,8 @@ def Main_Account():
 
     tk.Label(text="Select Your Choice", bg="blue", width="300", height="2", font=("Calibri", 13)).place(x=120,y=10,width=1126,height=60)
     tk.Button(text="Login", height="2", width="30", command = Login).place(x=533,y=250,width=300,height=100)
-    tk.Button(text="Admin Login", height="2", width="30", command = Admin_Login).place(x=533,y=400,width=300,height=100)
+    #tk.Button(text="Admin Login", height="2", width="30", command = Admin_Login).place(x=533,y=400,width=300,height=100)
+    tk.Button(text="Admin Login", height="2", width="30", command = Register).place(x=533,y=400,width=300,height=100)
 
     visible = main_account_screen
     main_account_screen.mainloop()
