@@ -700,11 +700,4 @@ def Master():
 
     master.mainloop()
 
-t1 = threading.Thread(target = Main_Account(), name = 't1')
-t2 = threading.Thread(target = SendMail(), name = 't1')
-
-t1.start()
-t2.start()
-
-t1.join()
-t2.join()
+Main_Account()
