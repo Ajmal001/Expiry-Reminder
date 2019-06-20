@@ -13,6 +13,16 @@ import threading
 from cryptography.fernet import Fernet
 
 
+def Log_Out():
+    master.destroy()
+    Main_Account_Master()
+
+
+def toMain_Account():
+    visible.place_forget()
+    Main_Account()
+
+
 def toAdd_Inventory():
     visible.place_forget()
     Add_Inventory()
@@ -42,7 +52,7 @@ def Login():
     login_screen = tk.Frame(main_account_screen, bg = "white")
 
     tk.Label(login_screen, text="Please enter details below to Login", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
-
+    tk.Button(login_screen, text="Back", width=10, height=1, command = toMain_Account).place(x=120, y=80)
     tk.Label(login_screen, text="Username:", bg="white", font=("Calibri", 20)).place(x=450, y=250, width=250, height=50)
     username_login_Entry = tk.Entry(login_screen, textvariable=username_verify, font=("Calibri", 20))
     username_login_Entry.place(x=650, y=250, width=250, height=50)
@@ -73,6 +83,7 @@ def login_verify():
             password = bytes(line.split()[1], encoding='utf-8')
             password = cipher.decrypt(password)
             if username.decode("utf-8") == username1 and password.decode("utf-8") == password1:
+                main_account_master.destroy()
                 Master()
             else:
                 popupmain("Username or Password Wrong.")
@@ -97,7 +108,7 @@ def Admin_Login():
         admin_login_screen = tk.Frame(main_account_screen, bg = "white")
 
         tk.Label(admin_login_screen, text="Please enter details below to Login as Admin", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
-
+        tk.Button(admin_login_screen, text="Back", width=10, height=1, command = toMain_Account).place(x=120, y=80)
         tk.Label(admin_login_screen, text="Username:", bg="white", font=("Calibri", 20)).place(x=450, y=250, width=250, height=50)
         username_login_Entry = tk.Entry(admin_login_screen, textvariable=username_verify, font=("Calibri", 20))
         username_login_Entry.place(x=650, y=250, width=250, height=50)
@@ -120,7 +131,7 @@ def Admin_Login():
         admin_setup_screen = tk.Frame(main_account_screen, bg = "white")
 
         tk.Label(admin_setup_screen, text="Please enter details below to Setup Admin Account.", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
-
+        tk.Button(admin_login_screen, text="Back", width=10, height=1, command = toMain_Account).place(x=120, y=80)
         tk.Label(admin_setup_screen, text="Username:", bg="white", font=("Calibri", 15)).place(x=450, y=250, width=250, height=40)
         username_login_Entry = tk.Entry(admin_setup_screen, textvariable=username, font=("Calibri", 15))
         username_login_Entry.place(x=650, y=250, width=250, height=40)
@@ -663,17 +674,25 @@ def Main_Account():
     global main_account_screen
     global visible
 
-    main_account_screen = tk.Tk()
-    main_account_screen.geometry("1366x768")
-    main_account_screen.configure(bg="white")
+    main_account_screen = tk.Frame(main_account_master, bg = "white")
 
-    tk.Label(text="Select Your Choice", bg="blue", width="300", height="2", font=("Calibri", 13)).place(x=120,y=10,width=1126,height=60)
-    tk.Button(text="Login", height="2", width="30", command = Login).place(x=533,y=250,width=300,height=100)
-    #tk.Button(text="Admin Login", height="2", width="30", command = Admin_Login).place(x=533,y=400,width=300,height=100)
-    tk.Button(text="Admin Login", height="2", width="30", command = Register).place(x=533,y=400,width=300,height=100)
+    tk.Label(main_account_screen, text="Select Your Choice", bg="blue", width="300", height="2", font=("Calibri", 13)).place(x=120,y=10,width=1126,height=60)
+    tk.Button(main_account_screen, text="Login", height="2", width="30", command = Login).place(x=533,y=250,width=300,height=100)
+    tk.Button(main_account_screen, text="Admin Login", height="2", width="30", command = Admin_Login).place(x=533,y=400,width=300,height=100)
 
     visible = main_account_screen
-    main_account_screen.mainloop()
+    main_account_screen.place(x=0, y=0, width=1366, height=768)
+
+
+def Main_Account_Master():
+    global main_account_master
+    global visible
+
+    main_account_master = tk.Tk()
+    main_account_master.geometry("1366x768")
+    main_account_master.configure(bg="white")
+    Main_Account()
+    main_account_master.mainloop()
 
 
 def Master():
@@ -693,6 +712,7 @@ def Master():
     filemenu.add_command(label="Add to Inventory", command=toAdd_Inventory)
     filemenu.add_command(label="Check Inventory", command=toCheck_Inventory)
     filemenu.add_command(label="Modify Groups", command=toModify_Groups)
+    filemenu.add_command(label="Log Out", command=Log_Out)
     filemenu.add_separator()
     filemenu.add_command(label="Exit", command=master.quit)
     menubar.add_cascade(label="File", menu=filemenu)
@@ -700,4 +720,4 @@ def Master():
 
     master.mainloop()
 
-Main_Account()
+Main_Account_Master()
