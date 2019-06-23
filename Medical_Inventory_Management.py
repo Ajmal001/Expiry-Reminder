@@ -8,7 +8,6 @@ from tkinter.font import Font
 import configparser
 import re
 import os
-import datetime
 import threading
 from cryptography.fernet import Fernet
 
@@ -21,6 +20,11 @@ def Log_Out():
 def toMain_Account():
     visible.place_forget()
     Main_Account()
+
+
+def toAdmin_Controls():
+    visible.place_forget()
+    Admin_Controls()
 
 
 def toAdd_Inventory():
@@ -39,29 +43,32 @@ def toCheck_Inventory():
 
 
 def Login():
-    global login_screen
-    global visible
-    global username_verify
-    global password_verify
-    global username_login_Entry
-    global password_login_Entry
+    if os.path.exists(".users.db"):
+        global login_screen
+        global visible
+        global username_verify
+        global password_verify
+        global username_login_Entry
+        global password_login_Entry
 
-    username_verify = tk.StringVar()
-    password_verify = tk.StringVar()
+        username_verify = tk.StringVar()
+        password_verify = tk.StringVar()
 
-    login_screen = tk.Frame(main_account_screen, bg = "white")
+        login_screen = tk.Frame(main_account_screen, bg = "white")
 
-    tk.Label(login_screen, text="Please enter details below to Login", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
-    tk.Button(login_screen, text="Back", width=10, height=1, command = toMain_Account).place(x=120, y=80)
-    tk.Label(login_screen, text="Username:", bg="white", font=("Calibri", 20)).place(x=450, y=250, width=250, height=50)
-    username_login_Entry = tk.Entry(login_screen, textvariable=username_verify, font=("Calibri", 20))
-    username_login_Entry.place(x=650, y=250, width=250, height=50)
-    tk.Label(login_screen, text="Password:", bg="white", font=("Calibri", 20)).place(x=450, y=350, width=250, height=50)
-    password_login_Entry = tk.Entry(login_screen, textvariable=password_verify, show= '*', font=("Calibri", 20))
-    password_login_Entry.place(x=650, y=350, width=250, height=50)
-    tk.Button(login_screen, text="Login", width=10, height=1, command = login_verify).place(x=650, y=450, width=100, height=40)
-    visible = login_screen
-    login_screen.place(x=0, y=0, width=1366, height=768)
+        tk.Label(login_screen, text="Please enter details below to Login", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
+        tk.Button(login_screen, text="Back", width=10, height=1, command = toMain_Account).place(x=120, y=80)
+        tk.Label(login_screen, text="Username:", bg="white", font=("Calibri", 20)).place(x=450, y=250, width=250, height=50)
+        username_login_Entry = tk.Entry(login_screen, textvariable=username_verify, font=("Calibri", 20))
+        username_login_Entry.place(x=650, y=250, width=250, height=50)
+        tk.Label(login_screen, text="Password:", bg="white", font=("Calibri", 20)).place(x=450, y=350, width=250, height=50)
+        password_login_Entry = tk.Entry(login_screen, textvariable=password_verify, show= '*', font=("Calibri", 20))
+        password_login_Entry.place(x=650, y=350, width=250, height=50)
+        tk.Button(login_screen, text="Login", width=10, height=1, command = login_verify).place(x=650, y=450, width=100, height=40)
+        visible = login_screen
+        login_screen.place(x=0, y=0, width=1366, height=768)
+    else:
+        popupmain("No users have been registerd yet.")
 
 
 def login_verify():
@@ -84,7 +91,13 @@ def login_verify():
             password = cipher.decrypt(password)
             if username.decode("utf-8") == username1 and password.decode("utf-8") == password1:
                 main_account_master.destroy()
-                Master()
+                with open(".inventory.lg", "a") as log:
+                    msg = cipher.encrypt(username)
+                    log.write((cipher.encrypt(b"Login:")).decode("utf-8"))
+                    log.write(" ")
+                    log.write(msg.decode("utf-8"))
+                    log.write("\n")
+                Master(username1)
             else:
                 popupmain("Username or Password Wrong.")
     else:
@@ -131,7 +144,7 @@ def Admin_Login():
         admin_setup_screen = tk.Frame(main_account_screen, bg = "white")
 
         tk.Label(admin_setup_screen, text="Please enter details below to Setup Admin Account.", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
-        tk.Button(admin_login_screen, text="Back", width=10, height=1, command = toMain_Account).place(x=120, y=80)
+        tk.Button(admin_setup_screen, text="Back", width=10, height=1, command = toMain_Account).place(x=120, y=80)
         tk.Label(admin_setup_screen, text="Username:", bg="white", font=("Calibri", 15)).place(x=450, y=250, width=250, height=40)
         username_login_Entry = tk.Entry(admin_setup_screen, textvariable=username, font=("Calibri", 15))
         username_login_Entry.place(x=650, y=250, width=250, height=40)
@@ -162,7 +175,8 @@ def login_admin_verify():
         user = bytes(conf.get("DATA", "d2"), encoding='utf-8')
         passw = bytes(conf.get("DATA", "d3"), encoding='utf-8')
         if username1 == cipher.decrypt(user).decode("utf-8") and password1 == cipher.decrypt(passw).decode("utf-8"):
-            print("Welcome to Admin Controls.")
+            main_account_master.destroy()
+            Admin_Controls_Master()
         else:
             popupmain("Username or Password Wrong.")
     else:
@@ -175,7 +189,7 @@ def register_admin():
     mail = email.get()
     pattern = r"([\w\.-]+)@([\w\.-]+)(\.[\w\.]+)"
     if user != "" and passw != "" and re.search(pattern, mail):
-        with open(".admin.ini", "a") as file:
+        with open(".admin.ini", "w") as file:
             initial = "[DATA]\nD1 = \nD2 = \nD3 = \nD4 = "
             file.write(initial)
         key = Fernet.generate_key()
@@ -224,33 +238,19 @@ def convert_to_days(new_date):
     return n, year
 
 
-def SendMail():
-    x = datetime.datetime.now()
-    day1 = x.strftime("%x")
-    day = str(day1)
-    day1 = day[3:6] + day[0:3] + day[6:9]
-    db = open("inventory.db", "r")
-    today, this_year = convert_to_days(day1)
-    for line in db:
-        text = line.split()
-        good, year = convert_to_days(text[3])
-        if year == this_year and good == today:
-            msg = text[0] + " expires on " + text[3] + ". You still have " + text[5] + " left."
-            command = "python3 oauth2.py " + msg
-            os.system(command)
-
-
 def Register():
     global register_screen
-    register_screen = tk.Frame(main_account_screen, bg = "white")
-
     global username
     global password
     global username_Entry
     global password_Entry
+    global visible
+
+    register_screen = tk.Frame(admin_controls_master, bg = "white")
     username = tk.StringVar()
     password = tk.StringVar()
 
+    tk.Button(register_screen, text="Back", width=10, height=1, command = toAdmin_Controls).place(x=120, y=80)
     tk.Label(register_screen, text="Please enter details below to Register", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
     tk.Label(register_screen, text="Username:", bg="white", font=("Calibri", 20)).place(x=450, y=250, width=250, height=50)
     username_Entry = tk.Entry(register_screen, textvariable=username, font=("Calibri", 20))
@@ -490,7 +490,7 @@ def Delete_Type():
 
 
 def Add():
-    log = open("inventory.lg", "a")
+    log = open(".inventory.lg", "a")
     nam = (str(name.get())).replace(" ","_")
     dat = str(cal.get())
     qt = str(qty.get())
@@ -501,8 +501,14 @@ def Add():
         datetoday = str(datetoday.strftime("%x"))
         statement = nam + " " + typ + " " + datetoday + " " + dat + " " + qt + " " + qt +"\n"
         db.write(statement)
+        conf = configparser.ConfigParser()
+        path = ".admin.ini"
+        conf.read(path)
+        key = bytes(conf.get("DATA", "d1"), encoding='utf-8')
+        cipher = Fernet(key)
         log_statement = "Inserted: " + nam + " " + typ + " " + dat + " " + qt + " " + time.ctime() + "\n"
-        log.write(log_statement)
+        msg = cipher.encrypt(bytes(log_statement, "utf-8"))
+        log.write(msg.decode("utf-8"))
         popupmsg("Written to file")
     else:
         popupmsg("Fill in all the details")
@@ -670,6 +676,32 @@ def Add_Inventory():
     add_inventory_screen.place(x=0, y=0, width=1366, height=768)
 
 
+def Admin_Controls():
+    global admin_controls_screen
+
+    admin_controls_screen = tk.Frame(admin_controls_master, bg="white")
+
+
+    tk.Label(admin_controls_screen, text="Select Your Choice", bg="blue", width="300", height="2", font=("Calibri", 13)).place(x=120,y=10,width=1126,height=60)
+    tk.Button(admin_controls_screen, text="View Logs", height="2", width="30", command = Login).place(x=533,y=250,width=300,height=100)
+    tk.Button(admin_controls_screen, text="Register New User", height="2", width="30", command = Register).place(x=533,y=400,width=300,height=100)
+
+
+    visible = admin_controls_screen
+    admin_controls_screen.place(x=0, y=0, width=1366, height=768)
+
+
+def Admin_Controls_Master():
+    global admin_controls_master
+
+    admin_controls_master = tk.Tk()
+    admin_controls_master.title("Admin Controls")
+    admin_controls_master.geometry("1366x768")
+    admin_controls_master.configure(bg="white")
+    Admin_Controls()
+    admin_controls_master.mainloop()
+
+
 def Main_Account():
     global main_account_screen
     global visible
@@ -686,20 +718,21 @@ def Main_Account():
 
 def Main_Account_Master():
     global main_account_master
-    global visible
 
     main_account_master = tk.Tk()
+    main_account_master.title("Medical Inventory Management")
     main_account_master.geometry("1366x768")
     main_account_master.configure(bg="white")
     Main_Account()
     main_account_master.mainloop()
 
 
-def Master():
+def Master(user):
     global master
 
     master = tk.Tk()
-    master.title("Inventory Management")
+    title = "User: " + user
+    master.title(title)
     master.geometry("1366x768")
     master.configure(bg="white")
 
@@ -720,4 +753,8 @@ def Master():
 
     master.mainloop()
 
-Main_Account_Master()
+
+if __name__ == "__main__":
+    if not(os.path.exists(".users.db")):
+        open(".user.db", "w")
+    Main_Account_Master()
