@@ -42,6 +42,11 @@ def toCheck_Inventory():
     Check_Inventory()
 
 
+def toLogs():
+    #visible.place_forget()
+    Logs()
+
+
 def Login():
     if os.path.exists(".users.db"):
         global login_screen
@@ -92,9 +97,8 @@ def login_verify():
             if username.decode("utf-8") == username1 and password.decode("utf-8") == password1:
                 main_account_master.destroy()
                 with open(".inventory.lg", "a") as log:
+                    username = b"Login: " + username + bytes(" ", "utf-8") + bytes(time.ctime(), "utf-8")
                     msg = cipher.encrypt(username)
-                    log.write((cipher.encrypt(b"Login:")).decode("utf-8"))
-                    log.write(" ")
                     log.write(msg.decode("utf-8"))
                     log.write("\n")
                 Master(username1)
@@ -350,6 +354,23 @@ def sel(event):
     type = widget.get(selection[0]).strip()
 
 
+def log_sel(event):
+    global log
+    widget = event.widget
+    selection = widget.curselection()
+    logs = open(".inventory.lg", "r")
+    for i, line in enumerate(logs):
+        if i == selection[0]:
+            conf = configparser.ConfigParser()
+            path = ".admin.ini"
+            conf.read(path)
+            key = bytes(conf.get("DATA", "d1"), encoding='utf-8')
+            cipher = Fernet(key)
+            line = cipher.decrypt(bytes(line, encoding='utf-8'))
+            print(line.decode("utf-8"))
+    logs.close()
+
+
 def reading_type(event):
     widget = event.widget
     selection = widget.curselection()
@@ -506,9 +527,10 @@ def Add():
         conf.read(path)
         key = bytes(conf.get("DATA", "d1"), encoding='utf-8')
         cipher = Fernet(key)
-        log_statement = "Inserted: " + nam + " " + typ + " " + dat + " " + qt + " " + time.ctime() + "\n"
+        log_statement = "Inserted: " + nam + " " + typ + " " + dat + " " + qt + " " + time.ctime()
         msg = cipher.encrypt(bytes(log_statement, "utf-8"))
         log.write(msg.decode("utf-8"))
+        log.write("\n")
         popupmsg("Written to file")
     else:
         popupmsg("Fill in all the details")
@@ -519,12 +541,26 @@ def Add():
 def Delete():
     file = open("inventory.db", "r")
     temp = open("temp.txt", "w")
+    log = open(".inventory.lg", "a")
     for line in file:
         lines = line.split()
         if lines != text:
             temp.write(line)
+    conf = configparser.ConfigParser()
+    path = ".admin.ini"
+    conf.read(path)
+    key = bytes(conf.get("DATA", "d1"), encoding='utf-8')
+    cipher = Fernet(key)
+    log_statement = "Deleted: "
+    for txt in text:
+        log_statement += txt + " "
+    log_statement += time.ctime()
+    msg = cipher.encrypt(bytes(log_statement, "utf-8"))
+    log.write(msg.decode("utf-8"))
+    log.write("\n")
     file.close()
     temp.close()
+    log.close()
     os.remove("inventory.db")
     os.rename("temp.txt", "inventory.db")
     toCheck_Inventory()
@@ -534,6 +570,7 @@ def Delete():
 def Update_Qty():
     file = open("inventory.db", "r")
     temp = open("temp.txt", "w")
+    log = open(".inventory.lg", "a")
     for line in file:
         lines = line.split()
         if lines != text:
@@ -541,6 +578,16 @@ def Update_Qty():
         else:
             line1 = lines[0] + " " + lines[1] + " " + lines[2] + " " + lines[3] + " " + lines[4] + " " + str(qty.get()) + "\n"
             temp.write(line1)
+    conf = configparser.ConfigParser()
+    path = ".admin.ini"
+    conf.read(path)
+    key = bytes(conf.get("DATA", "d1"), encoding='utf-8')
+    cipher = Fernet(key)
+    log_statement = "Changed: " + lines[0] + " " + lines[1] + " " + lines[2] + " " + lines[3] + " " + lines[4] + " " + str(qty.get()) + " " + time.ctime()
+    msg = cipher.encrypt(bytes(log_statement, "utf-8"))
+    log.write(msg.decode("utf-8"))
+    log.write("\n")
+    log.close()
     file.close()
     temp.close()
     os.remove("inventory.db")
@@ -676,6 +723,32 @@ def Add_Inventory():
     add_inventory_screen.place(x=0, y=0, width=1366, height=768)
 
 
+def Logs():
+    global logs_screen
+    global logsbox
+    global current_selection
+
+    logs_screen = tk.Frame(admin_controls_master, bg="white")
+    logsfile = open(".inventory.lg", "r")
+    logsbox = tk.Listbox(logs_screen)
+    conf = configparser.ConfigParser()
+    path = ".admin.ini"
+    conf.read(path)
+    key = bytes(conf.get("DATA", "d1"), encoding='utf-8')
+    cipher = Fernet(key)
+    for log in logsfile:
+        log_ = cipher.decrypt(bytes(log, encoding='utf-8'))
+        text = ""
+        for txt in log_.split()[0:2]:
+            text += txt.decode("utf-8") + " "
+        logsbox.insert(tk.END, text)
+    logsbox.bind("<Double-Button-1>", log_sel)
+    logsbox.place(x=83,y=120,width=800,height=550)
+
+    visible = logs_screen
+    logs_screen.place(x=0, y=0, width=1366, height=768)
+
+
 def Admin_Controls():
     global admin_controls_screen
 
@@ -683,7 +756,7 @@ def Admin_Controls():
 
 
     tk.Label(admin_controls_screen, text="Select Your Choice", bg="blue", width="300", height="2", font=("Calibri", 13)).place(x=120,y=10,width=1126,height=60)
-    tk.Button(admin_controls_screen, text="View Logs", height="2", width="30", command = Login).place(x=533,y=250,width=300,height=100)
+    tk.Button(admin_controls_screen, text="View Logs", height="2", width="30", command = toLogs).place(x=533,y=250,width=300,height=100)
     tk.Button(admin_controls_screen, text="Register New User", height="2", width="30", command = Register).place(x=533,y=400,width=300,height=100)
 
 
