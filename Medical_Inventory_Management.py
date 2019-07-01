@@ -17,6 +17,11 @@ def Log_Out():
     Main_Account_Master()
 
 
+def Admin_Out():
+    admin_controls_master.destroy()
+    Main_Account_Master()
+
+
 def toMain_Account():
     visible.place_forget()
     Main_Account()
@@ -43,7 +48,7 @@ def toCheck_Inventory():
 
 
 def toLogs():
-    #visible.place_forget()
+    visible.place_forget()
     Logs()
 
 
@@ -97,7 +102,7 @@ def login_verify():
             if username.decode("utf-8") == username1 and password.decode("utf-8") == password1:
                 main_account_master.destroy()
                 with open(".inventory.lg", "a") as log:
-                    username = b"Login: " + username + bytes(" ", "utf-8") + bytes(time.ctime(), "utf-8")
+                    username = b"Login: " + username + bytes(" ", "utf-8") + bytes(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), "utf-8")
                     msg = cipher.encrypt(username)
                     log.write(msg.decode("utf-8"))
                     log.write("\n")
@@ -208,38 +213,6 @@ def register_admin():
         popupmain("Admin succesfully registered.")
     else:
         popupmain("Please enter all fields.")
-
-
-def convert_to_days(new_date):
-    n = 0
-    day = int(new_date[0:2])
-    month = int(new_date[3:5])
-    year = int(new_date[6:8])
-    if month == 1:
-        n = day
-    elif month == 2:
-        n = 31 + day
-    elif month == 3:
-        n = 59 + day
-    elif month == 4:
-        n = 90 + day
-    elif month == 5:
-        n = 120 + day
-    elif month == 6:
-        n = 151 + day
-    elif month == 7:
-        n = 181 + day
-    elif month == 8:
-        n = 212 + day
-    elif month == 9:
-        n = 242 + day
-    elif month == 10:
-        n = 272 + day
-    elif month == 11:
-        n = 303 + day
-    elif month == 12:
-        n = 334 + day
-    return n, year
 
 
 def Register():
@@ -356,6 +329,9 @@ def sel(event):
 
 def log_sel(event):
     global log
+    global labels
+    global log_frame
+
     widget = event.widget
     selection = widget.curselection()
     logs = open(".inventory.lg", "r")
@@ -367,8 +343,82 @@ def log_sel(event):
             key = bytes(conf.get("DATA", "d1"), encoding='utf-8')
             cipher = Fernet(key)
             line = cipher.decrypt(bytes(line, encoding='utf-8'))
-            print(line.decode("utf-8"))
+            data = line.decode("utf-8")
     logs.close()
+    log_frame = tk.Frame(logs_screen, bg="white")
+    log_frame.place(x=900, y=100, width=400, height=600)
+
+    if len(data.split()) == 4:
+        log_frame = tk.Frame(logs_screen, bg="white")
+        L1 = tk.Label(log_frame, text="Username :", bg="white", font=("Calibri", 13))
+        L1.place(x=40, y=50)
+        L2 = tk.Label(log_frame, text=data.split()[1], bg="white", font=("Calibri", 13))
+        L2.place(x=210, y=50)
+        L3 = tk.Label(log_frame, text="Logged in on :", bg="white", font=("Calibri", 13))
+        L3.place(x=40, y=100)
+        L4 = tk.Label(log_frame, text=data.split()[2], bg="white", font=("Calibri", 13))
+        L4.place(x=210, y=100)
+        L5 = tk.Label(log_frame, text=data.split()[3], bg="white", font=("Calibri", 13))
+        L5.place(x=210, y=140)
+        log_frame.place(x=900, y=100, width=400, height=600)
+    elif len(data.split()) == 5:
+        log_frame.place_forget()
+        log_frame = tk.Frame(logs_screen, bg="white")
+        L1 = tk.Label(log_frame, text="Product :", bg="white", font=("Calibri", 13))
+        L1.place(x=40, y=50)
+        L2 = tk.Label(log_frame, text=data.split()[1], bg="white", font=("Calibri", 13))
+        L2.place(x=210, y=50)
+        L3 = tk.Label(log_frame, text="Type :", bg="white", font=("Calibri", 13))
+        L3.place(x=40, y=100)
+        L4 = tk.Label(log_frame, text=data.split()[2], bg="white", font=("Calibri", 13))
+        L4.place(x=210, y=100)
+        L5 = tk.Label(log_frame, text="Deleted on :", bg="white", font=("Calibri", 13))
+        L5.place(x=40, y=150)
+        L6 = tk.Label(log_frame, text=data.split()[3], bg="white", font=("Calibri", 13))
+        L6.place(x=210, y=150)
+        L7 = tk.Label(log_frame, text=data.split()[4], bg="white", font=("Calibri", 13))
+        L7.place(x=210, y=190)
+        log_frame.place(x=900, y=100, width=400, height=600)
+    elif len(data.split()) == 7:
+        log_frame.place_forget()
+        log_frame = tk.Frame(logs_screen, bg="white")
+        L1 = tk.Label(log_frame, text="Product :", bg="white", font=("Calibri", 13))
+        L1.place(x=40, y=50)
+        L2 = tk.Label(log_frame, text=data.split()[1], bg="white", font=("Calibri", 13))
+        L2.place(x=210, y=50)
+        L3 = tk.Label(log_frame, text="Type :", bg="white", font=("Calibri", 13))
+        L3.place(x=40, y=100)
+        L4 = tk.Label(log_frame, text=data.split()[2], bg="white", font=("Calibri", 13))
+        L4.place(x=210, y=100)
+        L5 = tk.Label(log_frame, text="Inserted on :", bg="white", font=("Calibri", 13))
+        L5.place(x=40, y=150)
+        L6 = tk.Label(log_frame, text=data.split()[5], bg="white", font=("Calibri", 13))
+        L6.place(x=210, y=150)
+        L7 = tk.Label(log_frame, text=data.split()[6], bg="white", font=("Calibri", 13))
+        L7.place(x=210, y=190)
+        log_frame.place(x=900, y=100, width=400, height=600)
+    else:
+        log_frame.place_forget()
+        log_frame = tk.Frame(logs_screen, bg="white")
+        L1 = tk.Label(log_frame, text="Product :", bg="white", font=("Calibri", 13))
+        L1.place(x=40, y=50)
+        L2 = tk.Label(log_frame, text=data.split()[1], bg="white", font=("Calibri", 13))
+        L2.place(x=210, y=50)
+        L3 = tk.Label(log_frame, text="Type :", bg="white", font=("Calibri", 13))
+        L3.place(x=40, y=100)
+        L4 = tk.Label(log_frame, text=data.split()[2], bg="white", font=("Calibri", 13))
+        L4.place(x=210, y=100)
+        L5 = tk.Label(log_frame, text="Quantity used up :", bg="white", font=("Calibri", 13))
+        L5.place(x=40, y=150)
+        L6 = tk.Label(log_frame, text=int(data.split()[5])-int(data.split()[6]), bg="white", font=("Calibri", 13))
+        L6.place(x=210, y=150)
+        L7 = tk.Label(log_frame, text="Changed on :", bg="white", font=("Calibri", 13))
+        L7.place(x=40, y=200)
+        L8 = tk.Label(log_frame, text=data.split()[7], bg="white", font=("Calibri", 13))
+        L8.place(x=210, y=200)
+        L9 = tk.Label(log_frame, text=data.split()[8], bg="white", font=("Calibri", 13))
+        L9.place(x=210, y=240)
+        log_frame.place(x=900, y=100, width=400, height=600)
 
 
 def reading_type(event):
@@ -527,7 +577,7 @@ def Add():
         conf.read(path)
         key = bytes(conf.get("DATA", "d1"), encoding='utf-8')
         cipher = Fernet(key)
-        log_statement = "Inserted: " + nam + " " + typ + " " + dat + " " + qt + " " + time.ctime()
+        log_statement = "Inserted: " + nam + " " + typ + " " + dat + " " + qt + " " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
         msg = cipher.encrypt(bytes(log_statement, "utf-8"))
         log.write(msg.decode("utf-8"))
         log.write("\n")
@@ -551,10 +601,7 @@ def Delete():
     conf.read(path)
     key = bytes(conf.get("DATA", "d1"), encoding='utf-8')
     cipher = Fernet(key)
-    log_statement = "Deleted: "
-    for txt in text:
-        log_statement += txt + " "
-    log_statement += time.ctime()
+    log_statement = "Deleted: " +  text[0] + " " + text[1] + " " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
     msg = cipher.encrypt(bytes(log_statement, "utf-8"))
     log.write(msg.decode("utf-8"))
     log.write("\n")
@@ -583,7 +630,7 @@ def Update_Qty():
     conf.read(path)
     key = bytes(conf.get("DATA", "d1"), encoding='utf-8')
     cipher = Fernet(key)
-    log_statement = "Changed: " + lines[0] + " " + lines[1] + " " + lines[2] + " " + lines[3] + " " + lines[4] + " " + str(qty.get()) + " " + time.ctime()
+    log_statement = "Changed: " + lines[0] + " " + lines[1] + " " + lines[2] + " " + lines[3] + " " + lines[4] + " " + str(qty.get()) + " " + datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
     msg = cipher.encrypt(bytes(log_statement, "utf-8"))
     log.write(msg.decode("utf-8"))
     log.write("\n")
@@ -727,8 +774,13 @@ def Logs():
     global logs_screen
     global logsbox
     global current_selection
+    global visible
 
     logs_screen = tk.Frame(admin_controls_master, bg="white")
+
+    tk.Label(logs_screen, text="Logs", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
+    tk.Button(logs_screen, text="Back", width=10, height=1, command = toAdmin_Controls).place(x=120, y=80)
+
     logsfile = open(".inventory.lg", "r")
     logsbox = tk.Listbox(logs_screen)
     conf = configparser.ConfigParser()
@@ -739,6 +791,10 @@ def Logs():
     for log in logsfile:
         log_ = cipher.decrypt(bytes(log, encoding='utf-8'))
         text = ""
+        obj = " ".join(log_.decode("utf-8").split()[-2:])
+        time = datetime.strptime(obj, "%m/%d/%Y, %H:%M:%S")
+        diff = ((datetime.now() - time).total_seconds())/3600
+        print(diff)
         for txt in log_.split()[0:2]:
             text += txt.decode("utf-8") + " "
         logsbox.insert(tk.END, text)
@@ -751,6 +807,7 @@ def Logs():
 
 def Admin_Controls():
     global admin_controls_screen
+    global visible
 
     admin_controls_screen = tk.Frame(admin_controls_master, bg="white")
 
@@ -771,6 +828,15 @@ def Admin_Controls_Master():
     admin_controls_master.title("Admin Controls")
     admin_controls_master.geometry("1366x768")
     admin_controls_master.configure(bg="white")
+    menubar = tk.Menu(admin_controls_master)
+    filemenu = tk.Menu(menubar, tearoff=0)
+    filemenu.add_command(label="View Logs", command=Logs)
+    filemenu.add_command(label="Register New User", command=Register)
+    filemenu.add_command(label="Log Out", command=Admin_Out)
+    filemenu.add_separator()
+    filemenu.add_command(label="Exit", command=admin_controls_master.quit)
+    menubar.add_cascade(label="File", menu=filemenu)
+    admin_controls_master.config(menu=menubar)
     Admin_Controls()
     admin_controls_master.mainloop()
 
@@ -830,4 +896,5 @@ def Master(user):
 if __name__ == "__main__":
     if not(os.path.exists(".users.db")):
         open(".user.db", "w")
-    Main_Account_Master()
+    #Main_Account_Master()
+    Admin_Controls_Master()
