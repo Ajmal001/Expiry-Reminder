@@ -672,6 +672,24 @@ def Search_Name():
             display_reading_type(line)
 
 
+def Search_Date(date):
+    file = open("inventory.db", "r")
+    searchbox1 = tk.Listbox(modify_inventory_screen)
+    for line in file:
+        text = line.split()
+        times = {'In 24 Hours':24,'This Week':(24*7),'This Month':(24*7*4),'Next Three Months':(24*7*4*3),'Next Six Months':(24*7*4*6)}
+        obj = " ".join(line.split()[-3:-2])
+        time = datetime.strptime(obj, "%d/%m/%y")
+        diff = ((time - datetime.now()).total_seconds())/3600
+        print(diff)
+        searchbox1 = tk.Listbox(modify_inventory_screen)
+        if diff <= times[date]:
+            searchbox1.insert(tk.END, text[0].replace("_", " "))
+        tk.Label(modify_inventory_screen, text="Names", bg="white", font=("Calibri", 25)).place(x=850,y=80,width=400,height=40)
+        searchbox1.bind("<Double-Button-1>", reading_type)
+        searchbox1.place(x=850, y=120, width=400,height=400)
+
+
 def popupmsg(msg):
     popup = tk.Toplevel(master)
     popup.wm_title("!")
@@ -697,6 +715,7 @@ def Check_Inventory():
     global visible
     global L1
     global search_name
+    global timeline
 
     search_name = tk.StringVar()
 
@@ -706,6 +725,7 @@ def Check_Inventory():
     L1 = tk.Label(modify_inventory_screen, text="Groups", bg="white", font=("Calibri", 25))
     L1.place(x=160,y=75,width=120,height=50)
 
+
     groupsbox = tk.Listbox(modify_inventory_screen)
     groups = Get_Groups()
     for group in groups:
@@ -713,8 +733,13 @@ def Check_Inventory():
     groupsbox.bind("<Double-Button-1>", Draw_Types_Box_Same_Place)
     groupsbox.place(x=40,y=120,width=400,height=550)
 
-    tk.Button(modify_inventory_screen, text='Search by Type', command=Search_Type).place(x=500, y=140)
+    tk.Label(modify_inventory_screen, text="Search by time remaining before Expiry", bg="white").place(x=500, y=130)
+    timeline = tk.StringVar(modify_inventory_screen)
+    choices = { 'In 24 Hours','This Week','This Month','Next Three Months','Next Six Months'}
+    timeline.set('In 24 Hours')
+    timeMenu = tk.OptionMenu(modify_inventory_screen, timeline, *choices, command=Search_Date).place(x=500,y=150)
 
+    tk.Button(modify_inventory_screen, text='Search by Type', command=Search_Type).place(x=500, y=250)
     tk.Label(modify_inventory_screen, text="Name", bg="white").place(x=500, y=300)
     tk.Entry(modify_inventory_screen, textvariable=search_name, width=30).place(x=500, y=330)
     tk.Button(modify_inventory_screen, text='Search by Name', command=Search_Name).place(x=500, y=360)
@@ -770,17 +795,7 @@ def Add_Inventory():
     add_inventory_screen.place(x=0, y=0, width=1366, height=768)
 
 
-def Logs():
-    global logs_screen
-    global logsbox
-    global current_selection
-    global visible
-
-    logs_screen = tk.Frame(admin_controls_master, bg="white")
-
-    tk.Label(logs_screen, text="Logs", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
-    tk.Button(logs_screen, text="Back", width=10, height=1, command = toAdmin_Controls).place(x=120, y=80)
-
+def Logsbox(timeline):
     logsfile = open(".inventory.lg", "r")
     logsbox = tk.Listbox(logs_screen)
     conf = configparser.ConfigParser()
@@ -794,13 +809,46 @@ def Logs():
         obj = " ".join(log_.decode("utf-8").split()[-2:])
         time = datetime.strptime(obj, "%m/%d/%Y, %H:%M:%S")
         diff = ((datetime.now() - time).total_seconds())/3600
-        print(diff)
-        for txt in log_.split()[0:2]:
-            text += txt.decode("utf-8") + " "
-        logsbox.insert(tk.END, text)
+        if timeline == 'Last 24 Hours' and diff < 24:
+            for txt in log_.split()[0:2]:
+                text += txt.decode("utf-8") + " "
+            logsbox.insert(tk.END, text)
+        elif timeline == 'Last Week' and diff < 24*7:
+            for txt in log_.split()[0:2]:
+                text += txt.decode("utf-8") + " "
+            logsbox.insert(tk.END, text)
+        elif timeline == 'Last Month' and diff < 24*7*30:
+            for txt in log_.split()[0:2]:
+                text += txt.decode("utf-8") + " "
+            logsbox.insert(tk.END, text)
+        elif timeline == 'Last Year' and diff < 24*7*30*365:
+            for txt in log_.split()[0:2]:
+                text += txt.decode("utf-8") + " "
+            logsbox.insert(tk.END, text)
+        elif timeline == 'All':
+            for txt in log_.split()[0:2]:
+                text += txt.decode("utf-8") + " "
+            logsbox.insert(tk.END, text)
     logsbox.bind("<Double-Button-1>", log_sel)
-    logsbox.place(x=83,y=120,width=800,height=550)
+    logsbox.place(x=83,y=170,width=800,height=500)
 
+
+def Logs():
+    global logs_screen
+    global logsbox
+    global current_selection
+    global visible
+    global timeline
+
+    logs_screen = tk.Frame(admin_controls_master, bg="white")
+
+    tk.Label(logs_screen, text="Logs", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
+    tk.Button(logs_screen, text="Back", width=10, height=1, command = toAdmin_Controls).place(x=120, y=80)
+    timeline = tk.StringVar(logs_screen)
+    choices = { 'Last 24 Hours','Last Week','Last Month','Last Year','All'}
+    timeline.set('Last 24 Hours')
+    timeMenu = tk.OptionMenu(logs_screen, timeline, *choices, command=Logsbox).place(x=83,y=120)
+    Logsbox(timeline.get())
     visible = logs_screen
     logs_screen.place(x=0, y=0, width=1366, height=768)
 
@@ -896,5 +944,9 @@ def Master(user):
 if __name__ == "__main__":
     if not(os.path.exists(".users.db")):
         open(".user.db", "w")
-    #Main_Account_Master()
-    Admin_Controls_Master()
+    Main_Account_Master()
+
+## TODO:
+## colour
+## overall inventory used
+## email
