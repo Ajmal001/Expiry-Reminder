@@ -3,6 +3,7 @@ import tkinter.ttk
 from tkcalendar import Calendar, DateEntry
 import os
 import time
+import smtplib
 from datetime import datetime
 from tkinter.font import Font
 import configparser
@@ -50,6 +51,9 @@ def toCheck_Inventory():
 def toLogs():
     visible.place_forget()
     Logs()
+
+
+Color = {"bg": "white", "hd": "white", "button": "grey"}
 
 
 def Login():
@@ -624,6 +628,8 @@ def Update_Qty():
             temp.write(line)
         else:
             line1 = lines[0] + " " + lines[1] + " " + lines[2] + " " + lines[3] + " " + lines[4] + " " + str(qty.get()) + "\n"
+            use = int(lines[5]) - qty.get()
+            UpdateUsage(lines[1], use)
             temp.write(line1)
     conf = configparser.ConfigParser()
     path = ".admin.ini"
@@ -860,7 +866,7 @@ def Admin_Controls():
     admin_controls_screen = tk.Frame(admin_controls_master, bg="white")
 
 
-    tk.Label(admin_controls_screen, text="Select Your Choice", bg="blue", width="300", height="2", font=("Calibri", 13)).place(x=120,y=10,width=1126,height=60)
+    tk.Label(admin_controls_screen, text="Select Your Choice", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
     tk.Button(admin_controls_screen, text="View Logs", height="2", width="30", command = toLogs).place(x=533,y=250,width=300,height=100)
     tk.Button(admin_controls_screen, text="Register New User", height="2", width="30", command = Register).place(x=533,y=400,width=300,height=100)
 
@@ -895,7 +901,7 @@ def Main_Account():
 
     main_account_screen = tk.Frame(main_account_master, bg = "white")
 
-    tk.Label(main_account_screen, text="Select Your Choice", bg="blue", width="300", height="2", font=("Calibri", 13)).place(x=120,y=10,width=1126,height=60)
+    tk.Label(main_account_screen, text="Select Your Choice", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
     tk.Button(main_account_screen, text="Login", height="2", width="30", command = Login).place(x=533,y=250,width=300,height=100)
     tk.Button(main_account_screen, text="Admin Login", height="2", width="30", command = Admin_Login).place(x=533,y=400,width=300,height=100)
 
@@ -941,12 +947,92 @@ def Master(user):
     master.mainloop()
 
 
+def SendMail():
+    db = open("inventory.db", "r")
+    today = datetime.now()
+    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    server.login("expiry.informer@gmail.com", "Simple Password")
+    conf = configparser.ConfigParser()
+    path = ".admin.ini"
+    conf.read(path)
+    receiver = conf.get("DATA", "d4")
+    temp = open("temp.txt", "w")
+    for line in db:
+        expiry = line.split()[3]
+        org = int(line.split()[4])
+        now = int(line.split()[5])
+        left = now*100/org
+        e_date = datetime.strptime(expiry, "%d/%m/%y")
+        days_left = (e_date-today).days
+        if days_left == 0:
+            msg = line.split()[0] + " expires on " + "today. You still have " + line.split()[5] + " units left."
+            server.sendmail("expiry.informer@gmail.com", receiver, msg)
+        elif days_left <= 7:
+            msg = line.split()[0] + " expires on " + line.split()[3] + ". You still have " + line.split()[5] + " units left."
+            server.sendmail("expiry.informer@gmail.com", receiver, msg)
+            temp.write(line)
+        elif days_left == 30:
+            msg = line.split()[0] + " expires on " + line.split()[3] + ". You still have " + line.split()[5] + " units left."
+            server.sendmail("expiry.informer@gmail.com", receiver, msg)
+            temp.write(line)
+        elif left == 0:
+            pass
+        elif left <= 10:
+            msg = "You have less than 10% units of " + line.split()[0] + " left. It expires on " + line.split()[3] + "."
+            server.sendmail("expiry.informer@gmail.com", receiver, msg)
+            temp.write(line)
+        else:
+            temp.write(line)
+    server.quit()
+    temp.close()
+    db.close()
+    os.remove("inventory.db")
+    os.rename("temp.txt", "inventory.db")
+    file = open("Mail.txt", "a")
+    file.write(datetime.now().strftime("%d-%m-%y"))
+    file.close()
+
+
+def MonthlyInventoryFiles():
+    month_year = datetime.now().strftime("%B-%Y")
+    usage = "Usage/" + month_year + ".ini"
+    if not(os.path.exists("Usage")):
+        os.makedirs("Usage")
+    if not(os.path.exists(usage)):
+        file = open(usage, "w")
+        conf = configparser.ConfigParser()
+        conf.read("Config.ini")
+        config = configparser.ConfigParser()
+        config.read(usage)
+        sections = conf.sections()
+        config["DATA"] = {}
+        for section in sections:
+            types = conf[section]["type"].split(", ")
+            for type in types:
+                config["DATA"][type] = "0"
+        config.write(file)
+
+
+def UpdateUsage(type, used):
+    month_year = datetime.now().strftime("%B-%Y")
+    usage = "Usage/" + month_year + ".ini"
+    path = usage
+    config = configparser.ConfigParser()
+    config.read(usage)
+    val = int(config.get("DATA", type.lower()))
+    val += used
+    update_setting(path, config, "DATA", type.lower(), str(val))
+
+
 if __name__ == "__main__":
     if not(os.path.exists(".users.db")):
         open(".user.db", "w")
+    if not(os.path.exists("Mail.txt")):
+        open("Mail.txt", "w")
+    MonthlyInventoryFiles()
     Main_Account_Master()
+    if datetime.now().strftime("%d-%m-%y") not in open("Mail.txt"):
+        SendMail()
 
 ## TODO:
 ## colour
-## overall inventory used
-## email
