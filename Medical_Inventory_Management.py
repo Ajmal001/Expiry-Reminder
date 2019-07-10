@@ -438,17 +438,21 @@ def reading_type(event):
 def display_reading_type(line):
     global text
     global qty
+    global reading_type_frame
 
     text = line.split()
-    qty = tk.IntVar(modify_inventory_screen, text[5])
-    tk.Label(modify_inventory_screen, text="Name:", bg="white").place(x = 500, y = 550)
-    tk.Label(modify_inventory_screen, text=text[0].replace("_", " "), bg="white").place(x = 600, y = 550)
-    tk.Label(modify_inventory_screen, text="Date of Expiry:", bg="white").place(x = 500, y = 580)
-    tk.Label(modify_inventory_screen, text=text[3], bg="white").place(x = 600, y = 580)
-    tk.Label(modify_inventory_screen, text="Quantity Left:", bg="white").place(x = 500, y = 610)
-    tk.Entry(modify_inventory_screen, textvariable=qty).place(x = 600, y = 610)
-    tk.Button(modify_inventory_screen, text="Update Quantity", command=Update_Qty).place(x=540, y=640)
-    tk.Button(modify_inventory_screen, text="Delete from Inventory", command=Delete).place(x=685, y=640)
+    reading_type_frame.place_forget()
+    reading_type_frame = tk.Frame(modify_inventory_screen, bg="white")
+    qty = tk.IntVar(reading_type_frame, text[5])
+    tk.Label(reading_type_frame, text="Name:", bg="white").place(x = 0, y = 0)
+    tk.Label(reading_type_frame, text=text[0].replace("_", " "), bg="white").place(x = 100, y = 0)
+    tk.Label(reading_type_frame, text="Date of Expiry:", bg="white").place(x = 0, y = 30)
+    tk.Label(reading_type_frame, text=text[3], bg="white").place(x = 100, y = 30)
+    tk.Label(reading_type_frame, text="Quantity Left:", bg="white").place(x = 0, y = 60)
+    tk.Entry(reading_type_frame, textvariable=qty).place(x = 100, y = 60)
+    tk.Button(reading_type_frame, text="Update Quantity", command=Update_Qty).place(x=40, y=90)
+    tk.Button(reading_type_frame, text="Delete from Inventory", command=Delete).place(x=195, y=90)
+    reading_type_frame.place(x = 500, y = 550, width=500, height=500)
 
 
 def Get_Types(group):
@@ -722,6 +726,7 @@ def Check_Inventory():
     global L1
     global search_name
     global timeline
+    global reading_type_frame
 
     search_name = tk.StringVar()
 
@@ -749,6 +754,9 @@ def Check_Inventory():
     tk.Label(modify_inventory_screen, text="Name", bg="white").place(x=500, y=300)
     tk.Entry(modify_inventory_screen, textvariable=search_name, width=30).place(x=500, y=330)
     tk.Button(modify_inventory_screen, text='Search by Name', command=Search_Name).place(x=500, y=360)
+
+    reading_type_frame = tk.Frame(modify_inventory_screen, bg="white")
+    reading_type_frame.place(x = 500, y = 550, width=500, height=500)
 
     visible = modify_inventory_screen
     modify_inventory_screen.place(x=0, y=0, width=1366, height=768)
