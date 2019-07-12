@@ -996,6 +996,7 @@ def SendMail():
     os.rename("temp.txt", "inventory.db")
     file = open("Mail.txt", "a")
     file.write(datetime.now().strftime("%d-%m-%y"))
+    file.write("\n")
     file.close()
 
 
@@ -1037,7 +1038,8 @@ if __name__ == "__main__":
         open("Mail.txt", "w")
     MonthlyInventoryFiles()
     Main_Account_Master()
-    if datetime.now().strftime("%d-%m-%y") not in open("Mail.txt"):
+    time = datetime.now().strftime("%d-%m-%y") + "\n"
+    if time not in open("Mail.txt"):
         SendMail()
 
 ## TODO:
