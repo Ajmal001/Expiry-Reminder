@@ -1033,7 +1033,7 @@ def UpdateUsage(type, used):
 
 if __name__ == "__main__":
     if not(os.path.exists(".users.db")):
-        open(".user.db", "w")
+        open(".users.db", "w")
     if not(os.path.exists("Mail.txt")):
         open("Mail.txt", "w")
     MonthlyInventoryFiles()
