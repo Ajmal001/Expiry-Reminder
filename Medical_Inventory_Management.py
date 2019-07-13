@@ -214,7 +214,8 @@ def register_admin():
         update_setting(path, config, "DATA", "D2", cipher.encrypt(bytes(user, encoding='utf-8')).decode("utf-8"))
         update_setting(path, config, "DATA", "D3", cipher.encrypt(bytes(passw, encoding='utf-8')).decode("utf-8"))
         update_setting(path, config, "DATA", "D4", mail)
-        popupmain("Admin succesfully registered.")
+        main_account_master.destroy()
+        Admin_Controls_Master()
     else:
         popupmain("Please enter all fields.")
 
@@ -249,6 +250,9 @@ def register_user():
     username_info = username.get()
     password_info = password.get()
     if username_info != "" and password_info != "":
+        if not(os.path.exists(".users.db")):
+            file = open(".users.db", "w")
+            file.close()
         file = open(".users.db", "r")
         conf = configparser.ConfigParser()
         path = ".admin.ini"
@@ -262,10 +266,11 @@ def register_user():
             file.close()
             username_Entry.delete(0, tk.END)
             password_Entry.delete(0, tk.END)
+            popupadmin("New User Registered.")
         else:
-            popupmain("Username Already Taken.")
+            popupadmin("Username Already Taken.")
     else:
-        popupmain("Please Enter Username and Password.")
+        popupadmin("Please Enter Username and Password.")
 
 
 def Modify_Groups():
@@ -578,7 +583,7 @@ def Add():
     if nam != "" and qt != "":
         db = open('inventory.db', 'a')
         datetoday = datetime.now()
-        datetoday = str(datetoday.strftime("%x"))
+        datetoday = str(datetoday.strftime("%d/%m/%y"))
         statement = nam + " " + typ + " " + datetoday + " " + dat + " " + qt + " " + qt +"\n"
         db.write(statement)
         conf = configparser.ConfigParser()
@@ -713,6 +718,16 @@ def popupmsg(msg):
 
 def popupmain(msg):
     popup = tk.Toplevel(main_account_screen)
+    popup.wm_title("!")
+    label = tk.Label(popup, text=msg)
+    label.pack(side="top", fill="x", pady=10)
+    B1 = tk.Button(popup, text="Okay", command = popup.destroy)
+    B1.pack()
+    popup.mainloop()
+
+
+def popupadmin(msg):
+    popup = tk.Toplevel(admin_controls_master)
     popup.wm_title("!")
     label = tk.Label(popup, text=msg)
     label.pack(side="top", fill="x", pady=10)
@@ -1032,8 +1047,6 @@ def UpdateUsage(type, used):
 
 
 if __name__ == "__main__":
-    if not(os.path.exists(".users.db")):
-        open(".users.db", "w")
     if not(os.path.exists("Mail.txt")):
         open("Mail.txt", "w")
     MonthlyInventoryFiles()
