@@ -158,16 +158,16 @@ def Admin_Login():
 
         tk.Label(admin_setup_screen, text="Please enter details below to Setup Admin Account.", bg="white", font=("Calibri", 25), borderwidth=5, relief="solid").place(x=120,y=10,width=1126,height=60)
         tk.Button(admin_setup_screen, text="Back", width=10, height=1, command = toMain_Account).place(x=120, y=80)
-        tk.Label(admin_setup_screen, text="Username:", bg="white", font=("Calibri", 15)).place(x=450, y=250, width=250, height=40)
-        username_login_Entry = tk.Entry(admin_setup_screen, textvariable=username, font=("Calibri", 15))
-        username_login_Entry.place(x=650, y=250, width=250, height=40)
-        tk.Label(admin_setup_screen, text="Password:", bg="white", font=("Calibri", 15)).place(x=450, y=310, width=250, height=40)
-        password_login_Entry = tk.Entry(admin_setup_screen, textvariable=password, show= '*', font=("Calibri", 15))
-        password_login_Entry.place(x=650, y=310, width=250, height=40)
-        tk.Label(admin_setup_screen, text="Mail-ID for Expiry", bg="white", font=("Calibri", 15)).place(x=450, y=370, width=250, height=40)
-        tk.Label(admin_setup_screen, text="Notification:", bg="white", font=("Calibri", 15)).place(x=450, y=400, width=250, height=40)
-        password_login_Entry = tk.Entry(admin_setup_screen, textvariable=email, font=("Calibri", 15))
-        password_login_Entry.place(x=650, y=400, width=250, height=40)
+        tk.Label(admin_setup_screen, text="Username:", bg="white", font=("Calibri", 15)).place(x=400, y=250, width=250, height=40)
+        username_login_Entry = tk.Entry(admin_setup_screen, textvariable = username, font=("Calibri", 15))
+        username_login_Entry.place(x=600, y=250, width=300, height=40)
+        tk.Label(admin_setup_screen, text="Password:", bg="white", font=("Calibri", 15)).place(x=400, y=310, width=250, height=40)
+        password_login_Entry = tk.Entry(admin_setup_screen, textvariable = password, show= '*', font=("Calibri", 15))
+        password_login_Entry.place(x=600, y=310, width=300, height=40)
+        tk.Label(admin_setup_screen, text="Mail-ID for Expiry", bg="white", font=("Calibri", 15)).place(x=400, y=370, width=250, height=40)
+        tk.Label(admin_setup_screen, text="Notification:", bg="white", font=("Calibri", 15)).place(x=400, y=400, width=250, height=40)
+        password_login_Entry = tk.Entry(admin_setup_screen, textvariable = email, font=("Calibri", 15))
+        password_login_Entry.place(x=600, y=400, width=300, height=40)
         tk.Button(admin_setup_screen, text="Register", width=10, height=1, command = register_admin).place(x=650, y=470, width=100, height=40)
         visible = admin_setup_screen
         admin_setup_screen.place(x=0, y=0, width=1366, height=768)
@@ -214,8 +214,11 @@ def register_admin():
         update_setting(path, config, "DATA", "D2", cipher.encrypt(bytes(user, encoding='utf-8')).decode("utf-8"))
         update_setting(path, config, "DATA", "D3", cipher.encrypt(bytes(passw, encoding='utf-8')).decode("utf-8"))
         update_setting(path, config, "DATA", "D4", mail)
-        main_account_master.destroy()
-        Admin_Controls_Master()
+        file = open(".users.db", "a")
+        file.write(cipher.encrypt(bytes(user, encoding='utf-8')).decode("utf-8") + " ")
+        file.write(cipher.encrypt(bytes(passw, encoding='utf-8')).decode("utf-8") + "\n")
+        file.close()
+        popupmain("Admin succesfully registered.")
     else:
         popupmain("Please enter all fields.")
 
@@ -250,9 +253,6 @@ def register_user():
     username_info = username.get()
     password_info = password.get()
     if username_info != "" and password_info != "":
-        if not(os.path.exists(".users.db")):
-            file = open(".users.db", "w")
-            file.close()
         file = open(".users.db", "r")
         conf = configparser.ConfigParser()
         path = ".admin.ini"
@@ -266,11 +266,10 @@ def register_user():
             file.close()
             username_Entry.delete(0, tk.END)
             password_Entry.delete(0, tk.END)
-            popupadmin("New User Registered.")
         else:
-            popupadmin("Username Already Taken.")
+            popupmain("Username Already Taken.")
     else:
-        popupadmin("Please Enter Username and Password.")
+        popupmain("Please Enter Username and Password.")
 
 
 def Modify_Groups():
@@ -583,7 +582,7 @@ def Add():
     if nam != "" and qt != "":
         db = open('inventory.db', 'a')
         datetoday = datetime.now()
-        datetoday = str(datetoday.strftime("%d/%m/%y"))
+        datetoday = str(datetoday.strftime("%x"))
         statement = nam + " " + typ + " " + datetoday + " " + dat + " " + qt + " " + qt +"\n"
         db.write(statement)
         conf = configparser.ConfigParser()
@@ -697,7 +696,6 @@ def Search_Date(date):
         obj = " ".join(line.split()[-3:-2])
         time = datetime.strptime(obj, "%d/%m/%y")
         diff = ((time - datetime.now()).total_seconds())/3600
-        print(diff)
         searchbox1 = tk.Listbox(modify_inventory_screen)
         if diff <= times[date]:
             searchbox1.insert(tk.END, text[0].replace("_", " "))
@@ -718,16 +716,6 @@ def popupmsg(msg):
 
 def popupmain(msg):
     popup = tk.Toplevel(main_account_screen)
-    popup.wm_title("!")
-    label = tk.Label(popup, text=msg)
-    label.pack(side="top", fill="x", pady=10)
-    B1 = tk.Button(popup, text="Okay", command = popup.destroy)
-    B1.pack()
-    popup.mainloop()
-
-
-def popupadmin(msg):
-    popup = tk.Toplevel(admin_controls_master)
     popup.wm_title("!")
     label = tk.Label(popup, text=msg)
     label.pack(side="top", fill="x", pady=10)
@@ -1047,6 +1035,8 @@ def UpdateUsage(type, used):
 
 
 if __name__ == "__main__":
+    if not(os.path.exists(".users.db")):
+        open(".users.db", "w")
     if not(os.path.exists("Mail.txt")):
         open("Mail.txt", "w")
     MonthlyInventoryFiles()
